@@ -1,12 +1,11 @@
 from . import db
 from datetime import datetime
 from .exceptions import ValidationError
-from flask import url_for
 
 
 class Spectra(db.Model):
     __tablename__ = 'spectras'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # default auto increment
     name = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
@@ -26,7 +25,7 @@ class Spectra(db.Model):
 
     def to_json(self):
         json_spectra = {
-            'url': url_for('api.get_spectra', id=self.id),
+            'id': self.id,
             'name': self.name,
             'data': 'load data from file'
         }

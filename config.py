@@ -21,7 +21,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-                              'sqlite://'
+                              'sqlite://'  # empty url means to use a sqlite memory database
     WTF_CSRF_ENABLED = False
 
 
