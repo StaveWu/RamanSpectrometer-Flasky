@@ -1,7 +1,7 @@
-def minmax_scale():
+def minmax_scale(spec):
     pass
 
 
-def scale():
+def scale(spec):
     pass
 

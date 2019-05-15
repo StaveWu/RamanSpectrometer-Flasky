@@ -1,11 +1,11 @@
-def dae():
+def dae(spec):
     pass
 
 
-def sgfilter(order, window_length):
+def sgfilter(spec, order, window_length):
     pass
 
 
-def wavelet():
+def wavelet(spec):
     pass
 

@@ -2,7 +2,7 @@ from flask import jsonify, request
 from . import api
 from ..repositories import SpectraRepository, ComponentRepository
 from ..models import Spectrum, TrainData
-from ..exceptions import PropertyNotFoundError
+from .utils import get_property
 
 
 @api.route('/spectra')
@@ -29,22 +29,17 @@ def add_spectrum():
 
 @api.route('/spectra/<int:id>', methods=['PATCH'])
 def tag_spectrum(id):
-    comp_id = request.json.get('compId')
-    probability = request.json.get('probability')
-    if not check_property(comp_id):
-        raise PropertyNotFoundError('[compId] not found')
-    if not check_property(probability):
-        raise PropertyNotFoundError('[probability] not found')
+    comp_id = int(get_property(request.json, 'compId'))
+    probability = float(get_property(request.json, 'probability'))
 
-    spectra = SpectraRepository.find_by_id(id)  # may not found
-    spectra.set_component(comp_id, float(probability))
-    SpectraRepository.save_spectrum(spectra)
+    # TODO: modify spectrum's label
+    spectrum = SpectraRepository.find_by_id(id)  # may not found
+    spectrum.set_component(comp_id, probability)
+    SpectraRepository.save_spectrum(spectrum)
 
+    # TODO: retrain component model
     component = ComponentRepository.find_by_id(comp_id)
-    spectras = SpectraRepository.find_all()
-    component.retrain(TrainData(spectras))
+    spectra = SpectraRepository.find_all()
+    component.retrain(TrainData(spectra))
 
-
-def check_property(prop: str):
-    return prop is not None and prop != ''
 

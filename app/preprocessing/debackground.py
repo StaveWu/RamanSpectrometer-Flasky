@@ -1,8 +1,5 @@
-def airPLS(lambda_):
+def airPLS(spec, lambda_):
     pass
 
-
-def polyfit(order):
-    pass
 
 

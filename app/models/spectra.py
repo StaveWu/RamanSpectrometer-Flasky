@@ -42,7 +42,7 @@ class Spectrum(SpectrumBase):
         return self._timestamp
 
     def set_component(self, comp_id, probability):
-        self.label.set_component(comp_id, probability)
+        self.label = self.label.to_label(comp_id, probability)
 
     def to_json(self):
         return {
@@ -119,7 +119,7 @@ class Component(StateWatcher):
             'id': self.id,
             'name': self.name,
             'formula': self.formula,
-            'data': [s.to_json() for s in self.comp_spectra]
+            'data': [spec.to_json() for spec in self.comp_spectra]
         }
 
     @staticmethod
@@ -195,6 +195,7 @@ class TrainData:
 
 
 class Label:
+    """Value Object"""
     def __init__(self, comp_ids):
         self.comp_ids = comp_ids
         if not self.comp_ids:
@@ -206,9 +207,11 @@ class Label:
     def one_hot_int(self):
         pass
 
-    def set_component(self, comp_id, probability):
+    def to_label(self, comp_id, probability):
+        comp_ids = self.comp_ids.copy()
         if probability > 0.5:
-            self.comp_ids.append(comp_id)
+            comp_ids.append(comp_id)
         else:
-            self.comp_ids.remove(comp_id)
+            comp_ids.remove(comp_id)
+        return Label(comp_ids)
 
