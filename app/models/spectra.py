@@ -25,6 +25,14 @@ class SpectrumBase:
     def data(self, value):
         self._data = SpectrumData(value)
 
+    @property
+    def intensity(self):
+        return self._data.intensity
+
+    @property
+    def raman_shift(self):
+        return self._data.raman_shift
+
 
 class Spectrum(SpectrumBase):
     """Entity"""
@@ -48,7 +56,7 @@ class Spectrum(SpectrumBase):
         return {
             'id': self.id,
             'name': self.name,
-            'data': self.data.data,
+            'data': self.data,
             'timestamp': self.timestamp
         }
 
@@ -164,12 +172,20 @@ class SpectrumData:
         if not isinstance(data, (list, tuple, np.ndarray)):
             raise ValueError('spectra data expect list/tuple/np.ndarray but get {}'.format(type(data)))
         data_array = np.array(data)
-        if not data_array.ndim == 2 and data_array.shape[1] == 2:
+        if data_array.ndim != 2 or data_array.shape[1] != 2:
             raise ValueError('spectra data shape is not correct: {}'.format(data_array.shape))
         self.data = np.array(data)
 
     def truncate(self, start, end):
         return SpectrumData(self.data[start:end])
+
+    @property
+    def intensity(self):
+        return self.data[:, 1]
+
+    @property
+    def raman_shift(self):
+        return self.data[:, 0]
 
 
 class TrainData:
