@@ -1,7 +1,7 @@
 from . import api
-from ..repositories import ComponentRepository
 from flask import request, jsonify
-from ..models import Component
+from ..detecting.models import Component
+from ..detecting.repositories import ComponentRepository
 
 
 @api.route('/components')

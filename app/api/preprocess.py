@@ -1,5 +1,5 @@
 from . import api
-from ..models import Spectrum, PrerocessingService
+from ..preprocessing.models import Spectrum, PrerocessingService
 from flask import jsonify, request
 from .utils import get_property
 

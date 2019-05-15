@@ -1,5 +1,5 @@
 from ..repositories import SpectraRepository, ComponentRepository
-from ..exceptions import PropertyNotFoundError
+from ...exceptions import PropertyNotFoundError
 
 
 class SpectrumBase:
@@ -62,13 +62,18 @@ class Spectrum(SpectrumBase):
 
     @staticmethod
     def from_json(json_spectrum):
+        id = json_spectrum.get('id')
+        try:
+            id = int(id)
+        except TypeError:
+            id = None
         name = json_spectrum.get('name')
         if name is None or name == '':
             raise PropertyNotFoundError('json does not have a name')
         data = json_spectrum.get('data')
         if data is None or data == '':
             raise PropertyNotFoundError('json does not have a data')
-        return Spectrum(None, name, data)
+        return Spectrum(id, name, data)
 
 
 class StateWatcher:

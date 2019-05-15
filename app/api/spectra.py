@@ -1,7 +1,7 @@
 from flask import jsonify, request
 from . import api
-from ..repositories import SpectraRepository, ComponentRepository
-from ..models import Spectrum, TrainData
+from ..detecting.repositories import SpectraRepository, ComponentRepository
+from ..detecting.models import Spectrum, TrainData
 from .utils import get_property
 
 
