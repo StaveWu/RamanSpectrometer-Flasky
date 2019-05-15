@@ -132,13 +132,18 @@ class Component(StateWatcher):
 
     @staticmethod
     def from_json(json_spectrum):
+        id = json_spectrum.get('id')
+        try:
+            id = int(id)
+        except TypeError:
+            id = None
         name = json_spectrum.get('name')
         if name is None or name == '':
             raise PropertyNotFoundError('json does not have a name')
         data = json_spectrum.get('data')
         if data is None or data == '':
             raise PropertyNotFoundError('json does not have a data')
-        return Component(None, name, data)
+        return Component(id, name, data)
 
 
 class DetectionNetwork:

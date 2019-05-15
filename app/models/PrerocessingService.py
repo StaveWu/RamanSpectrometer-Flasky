@@ -1,9 +1,9 @@
 """
-algorithm facade
+algorithms facade
 """
 
 from .spectra import Spectrum
-from ..algorithm import debackground, denoise, conventional
+from ..algorithms import debackground, denoise, conventional
 import numpy as np
 
 

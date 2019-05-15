@@ -4,7 +4,7 @@ from ..models import Spectrum
 
 
 class SpectraDAO(db.Model):
-    __tablename__ = 'spectra'
+    __tablename__ = 'spectrum_infos'
     id = db.Column(db.Integer, primary_key=True)  # default auto increment
     name = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)

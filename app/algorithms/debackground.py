@@ -5,7 +5,7 @@ from scipy.sparse.linalg import spsolve
 
 def WhittakerSmooth(x, w, lambda_, differences=1):
     """
-    Penalized least squares algorithm for background fitting
+    Penalized least squares algorithms for background fitting
 
     input
         x: input data (i.e. chromatogram of spectrum)
