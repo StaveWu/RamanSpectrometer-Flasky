@@ -27,7 +27,9 @@ def remove_component(id):
 
 @api.route('/components/<int:id>', method=['PATCH'])
 def update_component(id):
-    comp = Component.from_json(request.json)
+    d = request.json.copy()
+    d['id'] = id
+    comp = Component.from_json(d)
     ComponentRepository.save_component(comp)
     return jsonify(comp.to_json())
 
