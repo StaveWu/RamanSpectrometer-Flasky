@@ -1,13 +1,13 @@
 from ..repositories import SpectraRepository, ComponentRepository
-from ..api.errors import ValidationError
+from ..exceptions import PropertyNotFoundError
 
 
-class Spectra:
+class SpectrumBase:
     """Entity"""
     def __init__(self, id, name, data):
         self._id = id
         self.name = name
-        self.data = SpectraData(data)
+        self._data = SpectrumData(data)
 
     @property
     def id(self):
@@ -15,14 +15,22 @@ class Spectra:
         return self._id
 
     def truncate(self, start: int, end: int):
-        self.data.truncate(start, end)
+        self._data.truncate(start, end)
+
+    @property
+    def data(self):
+        return self._data.data
+
+    @data.setter
+    def data(self, value):
+        self._data = SpectrumData(value)
 
 
-class MixedSpectra(Spectra):
+class Spectrum(SpectrumBase):
     """Entity"""
     def __init__(self, id, name, data, component_ids=None):
         super().__init__(id, name, data)
-        self.component_ids = component_ids
+        self.label = Label(component_ids)
         # access id and timestamp by db generating
         spec_dao = SpectraRepository.SpectraDAO(name=self.name)
         if not self._id:
@@ -33,6 +41,9 @@ class MixedSpectra(Spectra):
     def timestamp(self):
         return self._timestamp
 
+    def set_component(self, comp_id, probability):
+        self.label.set_component(comp_id, probability)
+
     def to_json(self):
         return {
             'id': self.id,
@@ -42,14 +53,14 @@ class MixedSpectra(Spectra):
         }
 
     @staticmethod
-    def from_json(json_spectra):
-        name = json_spectra.get('name')
+    def from_json(json_spectrum):
+        name = json_spectrum.get('name')
         if name is None or name == '':
-            raise ValidationError('json does not have a name')
-        data = json_spectra.get('data')
+            raise PropertyNotFoundError('json does not have a name')
+        data = json_spectrum.get('data')
         if data is None or data == '':
-            raise ValidationError('json does not have a data')
-        return MixedSpectra(None, name, data)
+            raise PropertyNotFoundError('json does not have a data')
+        return Spectrum(None, name, data)
 
 
 class StateWatcher:
@@ -66,11 +77,11 @@ class StateWatcher:
 
 class Component(StateWatcher):
     """Entity"""
-    def __init__(self, id, name, comp_spectras, formula=None):
+    def __init__(self, id, name, comp_spectra, formula=None):
         super().__init__()
         self._id = id if id else self._generate_id()
         self.name = name
-        self.comp_spectras = comp_spectras
+        self.comp_spectra = comp_spectra
         self.formula = formula
         self.state = None
         self.network = None
@@ -82,11 +93,17 @@ class Component(StateWatcher):
     def id(self):
         return self._id
 
-    def is_existing_on(self, spec: Spectra):
+    def is_existing_on(self, spec: SpectrumBase):
         if not self.network:  # lazy load
             self.network = DetectionNetwork(self.id)
             self.network.register(self)
         pass
+
+    def retrain(self, train_data):
+        if not self.network:  # lazy load
+            self.network = DetectionNetwork(self.id)
+            self.network.register(self)
+        self.network.fit(train_data.X, train_data.Y)
 
     def busy(self):
         self.state = 'busy'
@@ -102,17 +119,17 @@ class Component(StateWatcher):
             'id': self.id,
             'name': self.name,
             'formula': self.formula,
-            'data': self.comp_spectras
+            'data': [s.to_json() for s in self.comp_spectra]
         }
 
     @staticmethod
-    def from_json(json_spectra):
-        name = json_spectra.get('name')
+    def from_json(json_spectrum):
+        name = json_spectrum.get('name')
         if name is None or name == '':
-            raise ValidationError('json does not have a name')
-        data = json_spectra.get('data')
+            raise PropertyNotFoundError('json does not have a name')
+        data = json_spectrum.get('data')
         if data is None or data == '':
-            raise ValidationError('json does not have a data')
+            raise PropertyNotFoundError('json does not have a data')
         return Component(None, name, data)
 
 
@@ -130,17 +147,17 @@ class DetectionNetwork:
     def register(self, state_watcher: StateWatcher):
         self.state_watcher = state_watcher
 
-    def predict(self, spec: Spectra):
+    def predict(self, spec: SpectrumBase):
         pass
 
-    def fit(self, train_data):
+    def fit(self, xs, ys):
         self.state_watcher.busy()
         # fit data
-        self.model.fit(train_data.xs, train_data.ys)
+        self.model.fit(xs, ys)
         self.state_watcher.online()
 
 
-class SpectraData:
+class SpectrumData:
     """Value object"""
     def __init__(self, data):
         import numpy as np
@@ -152,7 +169,46 @@ class SpectraData:
         self.data = np.array(data)
 
     def truncate(self, start, end):
-        return SpectraData(self.data[start:end])
+        return SpectrumData(self.data[start:end])
 
 
+class TrainData:
+    def __init__(self, spectra, bit_for_label=None):
+        self.spectra = spectra
+        if not self.spectra:
+            self.spectra = []
+        self.bit_for_label = bit_for_label
+
+    @property
+    def X(self):
+        return self._alignment()
+
+    @property
+    def Y(self):
+        res = [spec.label.one_hot_int() for spec in self.spectra]
+        if self.bit_for_label:
+            pass
+        return res
+
+    def _alignment(self):
+        pass
+
+
+class Label:
+    def __init__(self, comp_ids):
+        self.comp_ids = comp_ids
+        if not self.comp_ids:
+            self.comp_ids = []
+
+    def one_hot(self):
+        pass
+
+    def one_hot_int(self):
+        pass
+
+    def set_component(self, comp_id, probability):
+        if probability > 0.5:
+            self.comp_ids.append(comp_id)
+        else:
+            self.comp_ids.remove(comp_id)
 

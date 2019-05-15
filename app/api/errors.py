@@ -1,5 +1,5 @@
 from flask import jsonify
-from app.exceptions import ValidationError
+from app.exceptions import PropertyNotFoundError
 from . import api
 
 
@@ -12,6 +12,6 @@ def bad_request(message):
     return response
 
 
-@api.errorhandler(ValidationError)
+@api.errorhandler(PropertyNotFoundError)
 def validation_error(e):
     return bad_request(e.args[0])

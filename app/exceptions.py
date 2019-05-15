@@ -1,2 +1,6 @@
-class ValidationError(ValueError):
+class PropertyNotFoundError(ValueError):
+    pass
+
+
+class EntityNotFoundError(ValueError):
     pass

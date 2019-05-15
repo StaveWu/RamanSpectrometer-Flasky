@@ -2,7 +2,7 @@ from .. import db
 
 
 class ComponentDAO(db.Model):
-    __tablename__ = 'components'
+    __tablename__ = 'component_types'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     formula = db.Column(db.Text, nullable=True)
