@@ -1,7 +1,7 @@
 from flask import jsonify, request
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentRepository
-from ..detecting.models import Spectrum, TrainData
+from ..detecting.models import Spectrum
 from .utils import get_property
 
 
@@ -32,14 +32,14 @@ def tag_spectrum(id):
     comp_id = int(get_property(request.json, 'compId'))
     probability = float(get_property(request.json, 'probability'))
 
-    # TODO: modify spectrum's label
+    # modify spectrum's label
     spectrum = SpectraRepository.find_by_id(id)  # may not found
     spectrum.set_component(comp_id, probability)
     SpectraRepository.save_spectrum(spectrum)
 
-    # TODO: retrain component model
+    # retrain component model
     component = ComponentRepository.find_by_id(comp_id)
     spectra = SpectraRepository.find_all()
-    component.retrain(TrainData(spectra))
+    component.refit(spectra)
 
 

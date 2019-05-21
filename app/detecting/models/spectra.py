@@ -90,14 +90,15 @@ class StateWatcher:
 
 class Component(StateWatcher):
     """Entity"""
-    def __init__(self, id, name, comp_spectra, formula=None):
+    def __init__(self, id, name, owned_spectra, formula=None):
         super().__init__()
         self._id = id if id else self._generate_id()
         self.name = name
-        self.comp_spectra = comp_spectra
+        self.owned_spectra = owned_spectra
         self.formula = formula
         self.state = None
-        self.network = None
+        self.network = DetectionNetwork(self.id)
+        self.network.register(self)
 
     def _generate_id(self):
         return ComponentRepository.ComponentDAO(name=self.name, formula=self.formula).id
@@ -106,17 +107,12 @@ class Component(StateWatcher):
     def id(self):
         return self._id
 
-    def is_existing_on(self, spec: SpectrumBase):
-        if not self.network:  # lazy load
-            self.network = DetectionNetwork(self.id)
-            self.network.register(self)
-        pass
+    def how_possible_existing_in(self, spec):
+        # alignment
+        return self.network.predict(spec)
 
-    def retrain(self, train_data):
-        if not self.network:  # lazy load
-            self.network = DetectionNetwork(self.id)
-            self.network.register(self)
-        self.network.fit(train_data.X, train_data.Y)
+    def refit(self, spectra):
+        self.network.fit(spectra)
 
     def busy(self):
         self.state = 'busy'
@@ -132,7 +128,7 @@ class Component(StateWatcher):
             'id': self.id,
             'name': self.name,
             'formula': self.formula,
-            'data': [spec.to_json() for spec in self.comp_spectra]
+            'data': [spec.to_json() for spec in self.owned_spectra]
         }
 
     @staticmethod
@@ -165,12 +161,13 @@ class DetectionNetwork:
     def register(self, state_watcher: StateWatcher):
         self.state_watcher = state_watcher
 
-    def predict(self, spec: SpectrumBase):
-        pass
+    def predict(self, spec: Spectrum):
+        x = spec.intensity
 
-    def fit(self, xs, ys):
+        return self.model.predict(x)[0]
+
+    def fit(self, spectra):
         self.state_watcher.busy()
-        # fit data
         self.model.fit(xs, ys)
         self.state_watcher.online()
 
