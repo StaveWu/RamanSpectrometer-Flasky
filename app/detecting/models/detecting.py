@@ -39,7 +39,7 @@ class ComponentModel:
 
     @staticmethod
     def create_model(id, comps: List[Component]):
-        xs, ys = generate_train_data(comps)
+        xs, ys = generate_train_data([c.data_frame() for c in comps])
         model = ModelFactory.new_initial_transferred_model(xs, ys)
         return ComponentModel(id, model)
 

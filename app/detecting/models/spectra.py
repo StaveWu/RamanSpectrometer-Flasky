@@ -1,5 +1,6 @@
 from ..repositories import SpectraRepository, ComponentRepository
 from ...exceptions import PropertyNotFoundError
+from typing import List
 
 
 class SpectrumBase:
@@ -82,7 +83,7 @@ class Component:
         super().__init__()
         self._id = id if id else self._generate_id()
         self.name = name
-        self.owned_spectra = owned_spectra
+        self.owned_spectra: List[Spectrum] = owned_spectra
         self.formula = formula
 
     def _generate_id(self):
@@ -99,6 +100,14 @@ class Component:
             'formula': self.formula,
             'data': [spec.to_json() for spec in self.owned_spectra]
         }
+
+    def data_frame(self):
+        import pandas as pd
+        df = pd.concat([pd.Series(name=self.name, index=cos.raman_shift, data=cos.intensity)
+                          for cos in self.owned_spectra], axis=1)
+        df = df.fillna(method='ffill')
+        df = df.fillna(method='bfill')
+        return df
 
     @staticmethod
     def from_json(json_spectrum):
