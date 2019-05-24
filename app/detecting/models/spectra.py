@@ -76,19 +76,7 @@ class Spectrum(SpectrumBase):
         return Spectrum(id, name, data)
 
 
-class StateWatcher:
-    """interface"""
-    def busy(self):
-        pass
-
-    def online(self):
-        pass
-
-    def offline(self):
-        pass
-
-
-class Component(StateWatcher):
+class Component:
     """Entity"""
     def __init__(self, id, name, owned_spectra, formula=None):
         super().__init__()
@@ -96,9 +84,6 @@ class Component(StateWatcher):
         self.name = name
         self.owned_spectra = owned_spectra
         self.formula = formula
-        self.state = None
-        self.network = DetectionNetwork(self.id)
-        self.network.register(self)
 
     def _generate_id(self):
         return ComponentRepository.ComponentDAO(name=self.name, formula=self.formula).id
@@ -106,22 +91,6 @@ class Component(StateWatcher):
     @property
     def id(self):
         return self._id
-
-    def how_possible_existing_in(self, spec):
-        # alignment
-        return self.network.predict(spec)
-
-    def refit(self, spectra):
-        self.network.fit(spectra)
-
-    def busy(self):
-        self.state = 'busy'
-
-    def online(self):
-        self.state = 'online'
-
-    def offline(self):
-        self.state = 'offline'
 
     def to_json(self):
         return {
@@ -144,32 +113,8 @@ class Component(StateWatcher):
         data = json_spectrum.get('data')
         if data is None or data == '':
             raise PropertyNotFoundError('json does not have a data')
-        return Component(id, name, data)
-
-
-class DetectionNetwork:
-    """Entity"""
-    def __init__(self, comp_id):
-        self._comp_id = comp_id
-        self.model = None
-        self.state_watcher = None
-
-    @property
-    def comp_id(self):
-        return self._comp_id
-
-    def register(self, state_watcher: StateWatcher):
-        self.state_watcher = state_watcher
-
-    def predict(self, spec: Spectrum):
-        x = spec.intensity
-
-        return self.model.predict(x)[0]
-
-    def fit(self, spectra):
-        self.state_watcher.busy()
-        self.model.fit(xs, ys)
-        self.state_watcher.online()
+        formula = json_spectrum.get('formula')
+        return Component(id, name, data, formula)
 
 
 class SpectrumData:
@@ -193,28 +138,6 @@ class SpectrumData:
     @property
     def raman_shift(self):
         return self.data[:, 0]
-
-
-class TrainData:
-    def __init__(self, spectra, bit_for_label=None):
-        self.spectra = spectra
-        if not self.spectra:
-            self.spectra = []
-        self.bit_for_label = bit_for_label
-
-    @property
-    def X(self):
-        return self._alignment()
-
-    @property
-    def Y(self):
-        res = [spec.label.one_hot_int() for spec in self.spectra]
-        if self.bit_for_label:
-            pass
-        return res
-
-    def _alignment(self):
-        pass
 
 
 class Label:

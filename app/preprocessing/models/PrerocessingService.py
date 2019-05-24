@@ -8,9 +8,7 @@ import numpy as np
 
 
 def airPLS(spec: Spectrum, lambda_):
-    baseline = debackground.airPLS(spec.intensity, lambda_=lambda_)
-    dbg = spec.intensity - baseline
-    data = np.array([spec.raman_shift, dbg]).T
+    data = np.array([spec.raman_shift, debackground.airPLS(spec.intensity, lambda_=lambda_)]).T
     name = '{}-airPLS'.format(spec.name)
     return Spectrum(name, data)
 

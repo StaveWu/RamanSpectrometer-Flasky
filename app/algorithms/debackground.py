@@ -28,7 +28,7 @@ def WhittakerSmooth(x, w, lambda_, differences=1):
     return np.array(background)
 
 
-def airPLS(x, lambda_=100, porder=1, itermax=15):
+def airPLS_baseline(x, lambda_=100, porder=1, itermax=15):
     """
     Adaptive iteratively reweighted penalized least squares for baseline fitting
 
@@ -54,6 +54,11 @@ def airPLS(x, lambda_=100, porder=1, itermax=15):
         w[0] = np.exp(i * (d[d < 0]).max() / dssn)
         w[-1] = w[0]
     return z
+
+
+def airPLS(x, lambda_):
+    baseline = airPLS_baseline(x, lambda_)
+    return x - baseline
 
 
 

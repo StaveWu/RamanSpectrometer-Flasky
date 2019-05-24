@@ -1,4 +1,9 @@
 from tensorflow import keras
+from sklearn.preprocessing import minmax_scale
+from sklearn.utils import shuffle
+import numpy as np
+from .debackground import airPLS
+from .denoise import dae
 
 
 class Model:
@@ -10,6 +15,21 @@ class Model:
 
     def save(self, path):
         pass
+
+
+def _to_input_shape(xs):
+    if xs.shape[1] == 3000:
+        return xs
+    else:
+        # fill zeros in the end of xs
+        return np.array([x + [0] * (3000 - len(x)) for x in xs])
+
+
+def _pre_process(xs):
+    xs = _to_input_shape(xs)
+    xs = np.array([airPLS(x, lambda_=50) for x in xs])
+    xs = minmax_scale(xs, axis=1)
+    return dae(xs)
 
 
 class MultiTaskModel(Model):
@@ -54,6 +74,9 @@ class MultiTaskModel(Model):
         return keras.models.load_model(model_path)
 
     def fit(self, xs, ys):
+        xs = _pre_process(xs)
+        shuffle(xs, ys)
+        xs = np.expand_dims(xs, axis=2)
         self.model.fit(xs, ys)
 
     def predict(self, xs):
@@ -91,6 +114,9 @@ class TransferredModel(Model):
                                    metrics=['accuracy'])
 
     def fit(self, xs, ys):
+        xs = _pre_process(xs)
+        shuffle(xs, ys)
+        xs = np.expand_dims(xs, axis=2)
         self.model.fit(xs, ys)
 
     def predict(self, xs):
@@ -99,5 +125,29 @@ class TransferredModel(Model):
     def save(self, path):
         self.model.save(path)
 
+    @staticmethod
+    def load(path):
+        return keras.models.load_model(path)
+
+
+class ModelFactory:
+
+    @staticmethod
+    def new_initial_transferred_model(xs, ys):
+        multitask_model = MultiTaskModel()
+        multitask_model.fit(xs, ys)
+        return multitask_model.to_transferred_model()
+
+    @staticmethod
+    def new_multitask_model():
+        return MultiTaskModel()
+
+
+def alignment(xs):
+    pass
+
+
+def generate_train_data(comps, concen_upper_bound=1000, num_per_combination=1000):
+    pass
 
 
