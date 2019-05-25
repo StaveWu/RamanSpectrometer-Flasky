@@ -1,7 +1,6 @@
 from ... import db
 from ..models import Component, SpectrumBase
-import os
-import numpy as np
+from .io import component_io
 from typing import Optional
 
 
@@ -19,37 +18,6 @@ class ComponentSpectraDAO(db.Model):
     comp_id = db.Column(db.Integer)  # corresponding to ComponentDAO id
 
 
-class ComponentIO:
-    path = ''
-
-    @staticmethod
-    def write(id, data):
-        pathname = os.path.join(ComponentIO.path, id)
-        with open(pathname, 'w') as f:
-            for row_eles in data:
-                for i, col_ele in enumerate(row_eles):
-                    f.write('%f' % col_ele)
-                    if i < len(row_eles) - 1:
-                        f.write('\t')
-                f.write('\n')
-
-    @staticmethod
-    def read_by_id(id):
-        pathname = os.path.join(ComponentIO.path, id)
-        data = []
-        with open(pathname, 'r') as f:
-            for line in f.readlines():
-                s = line.strip().split('\t')
-                data.append([float(ele) for ele in s])
-        return np.array(data).astype('float')
-
-    @staticmethod
-    def delete_by_id(id):
-        pathname = os.path.join(ComponentIO.path, id)
-        if os.path.exists(pathname):
-            os.remove(pathname)
-
-
 def save_component(comp: Component):
     comp_dao = ComponentDAO(id=comp.id, name=comp.name, formula=comp.formula)
     db.session.add(comp_dao)
@@ -59,7 +27,7 @@ def save_component(comp: Component):
         comp_spec_dao = ComponentSpectraDAO(spec_name=cos.name, comp_id=comp.id)
         db.session.add(comp_spec_dao)
         db.session.commit()
-        ComponentIO.write(comp_spec_dao.id, cos.data)
+        component_io.write(comp_spec_dao.id, cos.data)
 
 
 def find_by_id(id) -> Optional[Component]:
@@ -70,7 +38,7 @@ def find_by_id(id) -> Optional[Component]:
         .filter(ComponentSpectraDAO.comp_id == comp_dao.id).all()
     owned_spectra = []
     for dao in comp_spec_daos:
-        data = ComponentIO.read_by_id(dao.spec_id)
+        data = component_io.read_by_id(dao.spec_id)
         owned_spectra.append(SpectrumBase(id=dao.id, name=dao.name, data=data))
     return Component(id=comp_dao.id, name=comp_dao.name,
                      owned_spectra=owned_spectra, formula=comp_dao.formula)
@@ -84,7 +52,7 @@ def find_all():
             .filter(ComponentSpectraDAO.comp_id == comp_dao.id).all()
         owned_spectra = []
         for dao in comp_spec_daos:
-            data = ComponentIO.read_by_id(dao.spec_id)
+            data = component_io.read_by_id(dao.spec_id)
             owned_spectra.append(SpectrumBase(id=dao.id, name=dao.name, data=data))
         res.append(Component(id=comp_dao.id, name=comp_dao.name,
                              owned_spectra=owned_spectra, formula=comp_dao.formula))
@@ -94,7 +62,7 @@ def find_all():
 def delete_by_id(id):
     comp_spec_daos = ComponentSpectraDAO.query.filter(ComponentSpectraDAO.comp_id == id).all()
     for dao in comp_spec_daos:
-        ComponentIO.delete_by_id(dao.spec_id)
+        component_io.delete_by_id(dao.spec_id)
     ComponentSpectraDAO.query.filter(ComponentSpectraDAO.comp_id == id).delete()
     ComponentDAO.query.filter(ComponentDAO.id == id).delete()
     db.session.commit()
