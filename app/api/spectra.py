@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from . import api
-from ..detecting.repositories import SpectraRepository, ComponentRepository
+from ..detecting.repositories import SpectraRepository, ComponentModelRepository
 from ..detecting.models import Spectrum
 from .utils import get_property
 
@@ -38,8 +38,8 @@ def tag_spectrum(id):
     SpectraRepository.save_spectrum(spectrum)
 
     # retrain component model
-    component = ComponentRepository.find_by_id(comp_id)
-    spectra = SpectraRepository.find_all()
-    component.refit(spectra)
+    model = ComponentModelRepository.find_by_id(comp_id)
+    model.fit(SpectraRepository.find_all())
+    ComponentModelRepository.save_model(model)
 
 

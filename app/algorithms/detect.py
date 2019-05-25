@@ -149,25 +149,72 @@ import pandas as pd
 from typing import List
 
 
+class ComponentRoller:
+    def __init__(self, comps: List[pd.DataFrame], roll_size):
+        self.comps = comps
+        self.roll_size = roll_size
+
+    def count(self):
+        return len(self.comps)
+
+    def roll(self):
+        picked_id = np.random.choice(self.count(), self.roll_size, replace=False)
+        picked_comps = []
+        for i in picked_id:
+            c = self.comps[i]
+            r = np.random.randint(c.shape[1])
+            picked_comps.append(c.iloc[:, r])
+
+        mask = np.zeros(self.count())
+        for i in picked_id:
+            mask[i] = 1
+        # translate hot bit to num.
+        # i.e. [1, 1, 0, 0] will be coded as 12
+        from functools import reduce
+        label = reduce(lambda x, y: x * 2 + y, mask)
+        label = label.astype('int')
+
+        df = pd.concat(picked_comps, axis=1)
+        return df.values, label
+
+
+class ConcentrationRoller:
+    def __init__(self, lower_bound, upper_bound, roll_size):
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+        self.roll_size = roll_size
+        self.roll_history = {}
+
+    def roll_unique(self, label):
+        vector = np.random.choice(np.arange(self.lower_bound, self.upper_bound, 1), self.roll_size)
+        vector_normed = normalize(vector.reshape(1, -1)).flatten()
+        return vector_normed if self._add_to_history(label, vector_normed) else self.roll_unique(label)
+
+    def _add_to_history(self, label, vector):
+        if label not in self.roll_history:
+            self.roll_history[label] = set()
+        prev_count = len(self.roll_history[label])
+        self.roll_history[label].add(tuple(vector))
+        cur_count = len(self.roll_history[label])
+        return cur_count != prev_count
+
+
 def generate_train_data(comps: List[pd.DataFrame], concen_upper_bound=1000, num_per_combination=1000):
     cps = [_to_int_index(c) for c in comps]
     cps = _alignment(cps)
     cps = _scale(cps)
+
     samples = []
     for n_class in range(1, len(cps) + 1):
-        cache = {}
-        i = 0
-        while i < num_per_combination:
-            picked, label = _roll_comps(comps, n_class)
-            concen_vector = _roll_concen_vector(n_class, 1, concen_upper_bound)
-            concen_vector_normed = normalize(concen_vector.reshape(1, -1)).flatten()
-            if n_class > 1 and _is_repeated(cache, label, concen_vector_normed):
-                continue
-            if i % 100 == 0:
-                print('组合数%d: 第%d个样本 --- 标签%d，浓度比%s' % (n_class, i, label, concen_vector_normed))
-            i += 1
-            the_sample = _overlay(picked, label, concen_vector_normed)
+        comps_roller = ComponentRoller(cps, n_class)
+        concen_roller = ConcentrationRoller(1, concen_upper_bound, n_class)
+        for i in range(num_per_combination):
+            picked_comps, label = comps_roller.roll()
+            concen_vector = concen_roller.roll_unique(label)
+            the_sample = pd.Series(name=label, data=np.sum(picked_comps * concen_vector, axis=0))
             samples.append(the_sample)
+            if i % 100 == 0:
+                print('组合数%d: 第%d个样本 --- 标签%d，浓度比%s' % (n_class, i, label, concen_vector))
         df = pd.concat(samples, axis=1)
         return df.values.T, df.columns.tolist()
 
@@ -209,45 +256,5 @@ def _alignment(dfs: List[pd.DataFrame]):
 def _scale(dfs: List[pd.DataFrame]):
     return [pd.DataFrame(data=scale(df.values), columns=df.columns) for df in dfs]
 
-
-def _roll_comps(comps: List[pd.DataFrame], n) -> (pd.DataFrame, int):
-    from functools import reduce
-    picked_id = np.random.choice(len(comps), n, replace=False)
-    picked_comps = []
-    for i in picked_id:
-        c = comps[i]
-        r = np.random.randint(c.shape[1])
-        picked_comps.append(c.iloc[:, r])
-
-    mask = np.zeros(len(comps))
-    for i in picked_id:
-        mask[i] = 1
-    # translate hot bit to num.
-    # i.e. [1, 1, 0, 0] will be coded as 12
-    label = reduce(lambda x, y: x * 2 + y, mask)
-    label = label.astype('int')
-
-    df = pd.concat(picked_comps, axis=1)
-    return df, label
-
-
-def _roll_concen_vector(n_class, low, high) -> np.array:
-    return np.random.choice(np.arange(low, high, 1), n_class)
-
-
-def _overlay(comps: pd.DataFrame, label, concen_vector) -> pd.Series:
-    res = pd.Series(name=label, data=np.zeros(comps.shape[0]))
-    for i in range(comps.shape[1]):
-        res += comps.iloc[:, i] * concen_vector[i]
-    return res
-
-
-def _is_repeated(d: dict, label: int, concen_vector: np.array) -> bool:
-    if label not in d:
-        d[label] = set()
-    prev_count = len(d[label])
-    d[label].add(tuple(concen_vector))
-    cur_count = len(d[label])
-    return cur_count == prev_count
 
 
