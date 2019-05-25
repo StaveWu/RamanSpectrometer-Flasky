@@ -3,7 +3,7 @@ from datetime import datetime
 from ..models import Spectrum
 import numpy as np
 import os
-from typing import List
+from typing import List, Optional
 
 
 class SpectrumDAO(db.Model):
@@ -58,7 +58,7 @@ def save_spectrum(spec: Spectrum):
     SpectrumIO.write(spec.id, spec.data)
 
 
-def find_by_id(id) -> Spectrum:
+def find_by_id(id) -> Optional[Spectrum]:
     spec_dao = db.session.query(SpectrumDAO).filter(SpectrumDAO.id == id).first()
     if not spec_dao:
         return None

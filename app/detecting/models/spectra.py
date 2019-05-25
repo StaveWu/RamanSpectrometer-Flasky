@@ -34,6 +34,13 @@ class SpectrumBase:
     def raman_shift(self):
         return self._data.raman_shift
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'data': self.data,
+        }
+
 
 class Spectrum(SpectrumBase):
     """Entity"""
@@ -87,7 +94,7 @@ class Component:
         super().__init__()
         self._id = id if id else self._generate_id()
         self.name = name
-        self.owned_spectra: List[Spectrum] = owned_spectra
+        self.owned_spectra: List[SpectrumBase] = owned_spectra
         self.formula = formula
 
     def _generate_id(self):
