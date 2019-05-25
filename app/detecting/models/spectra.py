@@ -41,10 +41,14 @@ class Spectrum(SpectrumBase):
         super().__init__(id, name, data)
         self.label = Label(component_ids)
         # access id and timestamp by db generating
-        spec_dao = SpectraRepository.SpectraDAO(name=self.name)
+        spec_dao = SpectraRepository.SpectrumDAO(name=self.name)
         if not self._id:
             self._id = spec_dao.id
         self._timestamp = spec_dao.timestamp
+
+    @property
+    def component_ids(self):
+        return self.label.comp_ids
 
     @property
     def timestamp(self):
