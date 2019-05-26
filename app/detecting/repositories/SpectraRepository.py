@@ -1,6 +1,5 @@
-from ... import db
+from ... import db, spectrum_io
 from ..models import Spectrum
-from .io import spectrum_io
 from typing import List, Optional
 from .daos import SpectrumDAO, SpectrumComponentsDAO
 

@@ -6,6 +6,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
+    SPECTRA_PATH = os.path.join(basedir, 'data', 'spectra')
+    COMPONENT_PATH = os.path.join(basedir, 'data', 'components')
 
     @staticmethod
     def init_app(app):
@@ -16,8 +18,6 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
-    SPECTRA_PATH = os.path.join(basedir, 'data', 'spectras')
-    COMPONENT_PATH = os.path.join(basedir, 'data', 'components')
 
 
 class TestingConfig(Config):
@@ -39,4 +39,3 @@ config = {
 
     'default': DevelopmentConfig
 }
-
