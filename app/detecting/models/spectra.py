@@ -1,4 +1,4 @@
-from ..repositories import SpectraRepository, ComponentRepository
+from ..repositories.daos import SpectrumDAO, ComponentDAO
 from ...exceptions import PropertyNotFoundError
 from typing import List
 
@@ -48,7 +48,7 @@ class Spectrum(SpectrumBase):
         super().__init__(id, name, data)
         self.label = Label(component_ids)
         # access id and timestamp by db generating
-        spec_dao = SpectraRepository.SpectrumDAO(name=self.name)
+        spec_dao = SpectrumDAO(name=self.name)
         if not self._id:
             self._id = spec_dao.id
         self._timestamp = spec_dao.timestamp
@@ -98,7 +98,7 @@ class Component:
         self.formula = formula
 
     def _generate_id(self):
-        return ComponentRepository.ComponentDAO(name=self.name, formula=self.formula).id
+        return ComponentDAO(name=self.name, formula=self.formula).id
 
     @property
     def id(self):

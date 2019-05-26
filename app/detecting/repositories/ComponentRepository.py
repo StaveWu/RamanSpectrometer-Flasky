@@ -2,20 +2,7 @@ from ... import db
 from ..models import Component, SpectrumBase
 from .io import component_io
 from typing import Optional
-
-
-class ComponentDAO(db.Model):
-    __tablename__ = 'component_infos'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
-    formula = db.Column(db.Text, nullable=True)
-
-
-class ComponentSpectraDAO(db.Model):
-    __tablename__ = 'component_spectra'
-    spec_id = db.Column(db.Integer, primary_key=True)
-    spec_name = db.Column(db.Text)
-    comp_id = db.Column(db.Integer)  # corresponding to ComponentDAO id
+from .daos import ComponentDAO, ComponentSpectraDAO
 
 
 def save_component(comp: Component):

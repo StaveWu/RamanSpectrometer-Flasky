@@ -12,7 +12,7 @@ def load_components():
     })
 
 
-@api.route('/components', method=['POST'])
+@api.route('/components', methods=['POST'])
 def add_component():
     comp = Component.from_json(request.json)
     ComponentRepository.save_component(comp)
@@ -23,14 +23,14 @@ def add_component():
     return jsonify(comp.to_json())
 
 
-@api.route('/components/<int:id>', method=['DELETE'])
+@api.route('/components/<int:id>', methods=['DELETE'])
 def remove_component(id):
     comp = ComponentRepository.delete_by_id(id)
     ComponentModelRepository.delete_by_id(id)
     return jsonify(comp.to_json())
 
 
-@api.route('/components/<int:id>', method=['PATCH'])
+@api.route('/components/<int:id>', methods=['PATCH'])
 def update_component(id):
     d = request.json.copy()
     d['id'] = id

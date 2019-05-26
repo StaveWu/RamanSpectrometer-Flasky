@@ -1,21 +1,8 @@
 from ... import db
-from datetime import datetime
 from ..models import Spectrum
 from .io import spectrum_io
 from typing import List, Optional
-
-
-class SpectrumDAO(db.Model):
-    __tablename__ = 'spectrum_infos'
-    id = db.Column(db.Integer, primary_key=True)  # default auto increment
-    name = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-
-
-class SpectrumComponentsDAO(db.Model):
-    __tablename__ = 'spectrum_components'
-    spec_id = db.Column(db.Integer, primary_key=True)
-    comp_id = db.Column(db.Integer, primary_key=True)
+from .daos import SpectrumDAO, SpectrumComponentsDAO
 
 
 def save_spectrum(spec: Spectrum):
