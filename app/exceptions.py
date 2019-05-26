@@ -1,3 +1,3 @@
-class PropertyNotFoundError(ValueError):
+class IncompleteFieldError(Exception):
     pass
 

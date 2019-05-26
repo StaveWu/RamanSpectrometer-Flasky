@@ -1,5 +1,5 @@
 from ..repositories.daos import SpectrumDAO, ComponentDAO
-from ...exceptions import PropertyNotFoundError
+from ...exceptions import IncompleteFieldError
 from typing import List
 
 
@@ -38,7 +38,7 @@ class SpectrumBase:
         return {
             'id': self.id,
             'name': self.name,
-            'data': self.data,
+            'data': self.data.tolist(),
         }
 
 
@@ -68,7 +68,7 @@ class Spectrum(SpectrumBase):
         return {
             'id': self.id,
             'name': self.name,
-            'data': self.data,
+            'data': self.data.tolist(),
             'timestamp': self.timestamp
         }
 
@@ -81,10 +81,10 @@ class Spectrum(SpectrumBase):
             id = None
         name = json_spectrum.get('name')
         if name is None or name == '':
-            raise PropertyNotFoundError('json does not have a name')
+            raise IncompleteFieldError('json does not have a name')
         data = json_spectrum.get('data')
         if data is None or data == '':
-            raise PropertyNotFoundError('json does not have a data')
+            raise IncompleteFieldError('json does not have a data')
         return Spectrum(id, name, data)
 
 
@@ -129,10 +129,10 @@ class Component:
             id = None
         name = json_spectrum.get('name')
         if name is None or name == '':
-            raise PropertyNotFoundError('json does not have a name')
+            raise IncompleteFieldError('json does not have a name')
         data = json_spectrum.get('data')
         if data is None or data == '':
-            raise PropertyNotFoundError('json does not have a data')
+            raise IncompleteFieldError('json does not have a data')
         formula = json_spectrum.get('formula')
         return Component(id, name, data, formula)
 

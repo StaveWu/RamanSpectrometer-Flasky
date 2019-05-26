@@ -1,4 +1,4 @@
-from ...exceptions import PropertyNotFoundError
+from ...exceptions import IncompleteFieldError
 
 
 class Spectrum:
@@ -23,10 +23,10 @@ class Spectrum:
     def from_json(json_spectrum):
         name = json_spectrum.get('name')
         if name is None or name == '':
-            raise PropertyNotFoundError('json does not have a name')
+            raise IncompleteFieldError('json does not have a name')
         data = json_spectrum.get('data')
         if data is None or data == '':
-            raise PropertyNotFoundError('json does not have a data')
+            raise IncompleteFieldError('json does not have a data')
         return Spectrum(name, data)
 
     def to_json(self):

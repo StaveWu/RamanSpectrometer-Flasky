@@ -13,11 +13,11 @@ class IO:
     def _get_pathname(self, id):
         if not self.path:
             raise RuntimeError('path should not be none')
-        return os.path.join(self.path, id)
+        return os.path.join(self.path, '{}.txt'.format(id))
 
     def write(self, id, data):
         pathname = self._get_pathname(id)
-        with open(pathname, 'w') as f:
+        with open(pathname, 'w+') as f:
             for row_eles in data:
                 for i, col_ele in enumerate(row_eles):
                     f.write('%f' % col_ele)
