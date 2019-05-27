@@ -1,5 +1,6 @@
 from ...exceptions import IncompleteFieldError
 from typing import List
+from ..repositories.daos import SpectrumDAO
 
 
 class SpectrumBase:
@@ -38,14 +39,13 @@ class Spectrum(SpectrumBase):
     """Entity"""
     def __init__(self, id, name, data, timestamp=None, component_ids=None):
         super().__init__(name, data)
-        self._id = id
-        self._timestamp = timestamp
+        self.dao = SpectrumDAO(id=id, name=name, timestamp=timestamp)
         self.label = Label(component_ids)
 
     @property
     def id(self):
         """read only"""
-        return self._id
+        return self.dao.id
 
     @property
     def component_ids(self):
@@ -53,7 +53,7 @@ class Spectrum(SpectrumBase):
 
     @property
     def timestamp(self):
-        return self._timestamp
+        return self.dao.timestamp
 
     def set_component(self, comp_id, probability):
         self.label = self.label.to_label(comp_id, probability)
@@ -80,6 +80,11 @@ class Spectrum(SpectrumBase):
         if data is None or data == '':
             raise IncompleteFieldError('json does not have a data')
         return Spectrum(id, name, data)
+
+    @staticmethod
+    def of(dao: SpectrumDAO, data, comp_ids):
+        return Spectrum(id=dao.id, name=dao.name, timestamp=dao.timestamp,
+                        data=data, component_ids=comp_ids)
 
 
 class Component:

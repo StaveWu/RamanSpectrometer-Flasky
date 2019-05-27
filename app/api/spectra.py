@@ -23,7 +23,7 @@ def get_spectrum(id):
 @api.route('/spectra', methods=['POST'])
 def add_spectrum():
     spectrum = Spectrum.from_json(request.json)
-    spectrum = SpectraRepository.save_spectrum(spectrum)
+    SpectraRepository.save_spectrum(spectrum)
     return jsonify(spectrum.to_json())
 
 

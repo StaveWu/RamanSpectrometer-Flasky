@@ -15,7 +15,7 @@ def bad_request(message):
 
 def resource_not_exist(message):
     response = jsonify({
-        'error': 'the request resource not exist',
+        'error': 'request resource not exist',
         'message': message
     })
     response.status_code = 404
