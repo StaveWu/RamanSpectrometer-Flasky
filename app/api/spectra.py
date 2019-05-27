@@ -42,4 +42,8 @@ def tag_spectrum(id):
     model.fit(SpectraRepository.find_all())
     ComponentModelRepository.save_model(model)
 
+    return jsonify({
+        'body': 'no content'
+    })
+
 

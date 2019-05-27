@@ -1,19 +1,12 @@
-from ..repositories.daos import SpectrumDAO, ComponentDAO
 from ...exceptions import IncompleteFieldError
 from typing import List
 
 
 class SpectrumBase:
     """Entity"""
-    def __init__(self, id, name, data):
-        self._id = id
+    def __init__(self, name, data):
         self.name = name
         self._data = SpectrumData(data)
-
-    @property
-    def id(self):
-        """read only"""
-        return self._id
 
     def truncate(self, start: int, end: int):
         self._data.truncate(start, end)
@@ -36,7 +29,6 @@ class SpectrumBase:
 
     def to_json(self):
         return {
-            'id': self.id,
             'name': self.name,
             'data': self.data.tolist(),
         }
@@ -44,14 +36,16 @@ class SpectrumBase:
 
 class Spectrum(SpectrumBase):
     """Entity"""
-    def __init__(self, id, name, data, component_ids=None):
-        super().__init__(id, name, data)
+    def __init__(self, id, name, data, timestamp=None, component_ids=None):
+        super().__init__(name, data)
+        self._id = id
+        self._timestamp = timestamp
         self.label = Label(component_ids)
-        # access id and timestamp by db generating
-        spec_dao = SpectrumDAO(name=self.name)
-        if not self._id:
-            self._id = spec_dao.id
-        self._timestamp = spec_dao.timestamp
+
+    @property
+    def id(self):
+        """read only"""
+        return self._id
 
     @property
     def component_ids(self):
@@ -91,14 +85,10 @@ class Spectrum(SpectrumBase):
 class Component:
     """Entity"""
     def __init__(self, id, name, owned_spectra, formula=None):
-        super().__init__()
-        self._id = id if id else self._generate_id()
+        self._id = id
         self.name = name
         self.owned_spectra: List[SpectrumBase] = owned_spectra
         self.formula = formula
-
-    def _generate_id(self):
-        return ComponentDAO(name=self.name, formula=self.formula).id
 
     @property
     def id(self):

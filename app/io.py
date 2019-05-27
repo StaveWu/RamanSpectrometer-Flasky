@@ -10,13 +10,13 @@ class IO:
     def init_app(app):
         pass
 
-    def _get_pathname(self, id):
+    def _get_pathname(self, name):
         if not self.path:
             raise RuntimeError('path should not be none')
-        return os.path.join(self.path, '{}.txt'.format(id))
+        return os.path.join(self.path, '{}.txt'.format(name))
 
-    def write(self, id, data):
-        pathname = self._get_pathname(id)
+    def write(self, name, data):
+        pathname = self._get_pathname(name)
         with open(pathname, 'w+') as f:
             for row_eles in data:
                 for i, col_ele in enumerate(row_eles):
@@ -25,8 +25,8 @@ class IO:
                         f.write('\t')
                 f.write('\n')
 
-    def read_by_id(self, id):
-        pathname = self._get_pathname(id)
+    def read(self, name):
+        pathname = self._get_pathname(name)
         data = []
         with open(pathname, 'r') as f:
             for line in f.readlines():
@@ -34,8 +34,8 @@ class IO:
                 data.append([float(ele) for ele in s])
         return np.array(data).astype('float')
 
-    def delete_by_id(self, id):
-        pathname = self._get_pathname(id)
+    def delete(self, name):
+        pathname = self._get_pathname(name)
         if os.path.exists(pathname):
             os.remove(pathname)
 
