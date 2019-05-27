@@ -16,7 +16,7 @@ def load_spectra():
 
 @api.route('/spectra/<int:id>')
 def get_spectrum(id):
-    spectrum = SpectraRepository.find_by_id(id)  # may not found
+    spectrum = SpectraRepository.find_by_id(id)
     return jsonify(spectrum.to_json())
 
 
@@ -42,8 +42,6 @@ def tag_spectrum(id):
     model.fit(SpectraRepository.find_all())
     ComponentModelRepository.save_model(model)
 
-    return jsonify({
-        'body': 'no content'
-    })
+    return jsonify({})
 
 

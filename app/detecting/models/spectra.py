@@ -1,10 +1,11 @@
 from ...exceptions import IncompleteFieldError
 from typing import List
-from ..repositories.daos import SpectrumDAO
+from ..repositories.daos import SpectrumDAO, ComponentDAO
 
 
 class SpectrumBase:
     """Entity"""
+
     def __init__(self, name, data):
         self.name = name
         self._data = SpectrumData(data)
@@ -37,6 +38,7 @@ class SpectrumBase:
 
 class Spectrum(SpectrumBase):
     """Entity"""
+
     def __init__(self, id, name, data, timestamp=None, component_ids=None):
         super().__init__(name, data)
         self.dao = SpectrumDAO(id=id, name=name, timestamp=timestamp)
@@ -89,15 +91,30 @@ class Spectrum(SpectrumBase):
 
 class Component:
     """Entity"""
+
     def __init__(self, id, name, owned_spectra, formula=None):
-        self._id = id
-        self.name = name
+        self.dao = ComponentDAO(id=id, name=name, formula=formula)
         self.owned_spectra: List[SpectrumBase] = owned_spectra
-        self.formula = formula
 
     @property
     def id(self):
-        return self._id
+        return self.dao.id
+
+    @property
+    def name(self):
+        return self.dao.name
+
+    @name.setter
+    def name(self, value):
+        self.dao.name = value
+
+    @property
+    def formula(self):
+        return self.dao.formula
+
+    @formula.setter
+    def formula(self, value):
+        self.dao.formula = value
 
     def to_json(self):
         return {
@@ -110,7 +127,7 @@ class Component:
     def data_frame(self):
         import pandas as pd
         df = pd.concat([pd.Series(name=self.name, index=cos.raman_shift, data=cos.intensity)
-                          for cos in self.owned_spectra], axis=1)
+                        for cos in self.owned_spectra], axis=1)
         df = df.fillna(method='ffill')
         df = df.fillna(method='bfill')
         return df
@@ -129,11 +146,17 @@ class Component:
         if data is None or data == '':
             raise IncompleteFieldError('json does not have a data')
         formula = json_spectrum.get('formula')
-        return Component(id, name, data, formula)
+        return Component(id=id, name=name, owned_spectra=data, formula=formula)
+
+    @staticmethod
+    def of(dao: ComponentDAO, owned_spectra):
+        return Component(id=dao.id, name=dao.name,
+                         owned_spectra=owned_spectra, formula=dao.formula)
 
 
 class SpectrumData:
     """Value object"""
+
     def __init__(self, data):
         import numpy as np
         if not isinstance(data, (list, tuple, np.ndarray)):
@@ -157,6 +180,7 @@ class SpectrumData:
 
 class Label:
     """Value Object"""
+
     def __init__(self, comp_ids):
         self.comp_ids = comp_ids
         if not self.comp_ids:
@@ -175,4 +199,3 @@ class Label:
         else:
             comp_ids.remove(comp_id)
         return Label(comp_ids)
-

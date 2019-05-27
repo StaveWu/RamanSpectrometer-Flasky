@@ -17,17 +17,17 @@ def add_component():
     comp = Component.from_json(request.json)
     ComponentRepository.save_component(comp)
 
-    model = ComponentModel.create_model(comp.id, ComponentRepository.find_all())
-    model.fit(SpectraRepository.find_all())
-    ComponentModelRepository.save_model(model)
+    # model = ComponentModel.create_model(comp.id, ComponentRepository.find_all())
+    # model.fit(SpectraRepository.find_all())
+    # ComponentModelRepository.save_model(model)
     return jsonify(comp.to_json())
 
 
 @api.route('/components/<int:id>', methods=['DELETE'])
 def remove_component(id):
-    comp = ComponentRepository.delete_by_id(id)
-    ComponentModelRepository.delete_by_id(id)
-    return jsonify(comp.to_json())
+    ComponentRepository.delete_by_id(id)
+    # ComponentModelRepository.delete_by_id(id)
+    return jsonify({})
 
 
 @api.route('/components/<int:id>', methods=['PATCH'])
@@ -39,9 +39,8 @@ def update_component(id):
     return jsonify(comp.to_json())
 
 
-@api.route('/components')
-def get_component():
-    id = request.args.get('id', type=int)
+@api.route('/components/<int:id>')
+def get_component(id):
     comp = ComponentRepository.find_by_id(id)
     return jsonify(comp.to_json())
 
