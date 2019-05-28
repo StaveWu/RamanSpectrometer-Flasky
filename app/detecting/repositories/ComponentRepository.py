@@ -18,7 +18,6 @@ def find_by_id(id) -> Component:
     comp_dao = db.session.query(ComponentDAO).filter(ComponentDAO.id == id).one()
     comp_spec_daos = db.session.query(ComponentSpectraDAO)\
         .filter(ComponentSpectraDAO.comp_id == comp_dao.id).all()
-    print(comp_spec_daos)
     owned_spectra = []
     for dao in comp_spec_daos:
         data = component_io.read(dao.spec_id)

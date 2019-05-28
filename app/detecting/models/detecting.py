@@ -1,4 +1,5 @@
-from ...algorithms.detect import ModelFactory, generate_train_data
+from ...algorithms.detect import ModelFactory
+from ...algorithms.data_generation import generate_train_data
 from .spectra import Component
 from typing import List
 
