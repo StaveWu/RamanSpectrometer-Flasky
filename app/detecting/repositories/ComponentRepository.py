@@ -11,17 +11,18 @@ def save_component(comp: Component):
         comp_spec_dao = ComponentSpectraDAO(spec_name=cos.name, comp_id=comp.id)
         db.session.add(comp_spec_dao)
         db.session.commit()
-        component_io.write(comp_spec_dao.id, cos.data)
+        component_io.write(comp_spec_dao.spec_id, cos.data)
 
 
 def find_by_id(id) -> Component:
     comp_dao = db.session.query(ComponentDAO).filter(ComponentDAO.id == id).one()
     comp_spec_daos = db.session.query(ComponentSpectraDAO)\
         .filter(ComponentSpectraDAO.comp_id == comp_dao.id).all()
+    print(comp_spec_daos)
     owned_spectra = []
     for dao in comp_spec_daos:
         data = component_io.read(dao.spec_id)
-        owned_spectra.append(SpectrumBase(name=dao.name, data=data))
+        owned_spectra.append(SpectrumBase(name=dao.spec_name, data=data))
     return Component.of(comp_dao, owned_spectra)
 
 
@@ -34,7 +35,7 @@ def find_all():
         owned_spectra = []
         for dao in comp_spec_daos:
             data = component_io.read(dao.spec_id)
-            owned_spectra.append(SpectrumBase(name=dao.name, data=data))
+            owned_spectra.append(SpectrumBase(name=dao.spec_name, data=data))
         res.append(Component.of(comp_dao, owned_spectra))
     return res
 

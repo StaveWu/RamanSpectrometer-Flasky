@@ -35,6 +35,16 @@ class SpectrumBase:
             'data': self.data.tolist(),
         }
 
+    @staticmethod
+    def from_json(json_spec):
+        name = json_spec.get('name')
+        if not name:
+            raise IncompleteFieldError('json does not have a name')
+        data = json_spec.get('data')
+        if not data:
+            raise IncompleteFieldError('json does not have a data')
+        return SpectrumBase(name, data)
+
 
 class Spectrum(SpectrumBase):
     """Entity"""
@@ -116,14 +126,6 @@ class Component:
     def formula(self, value):
         self.dao.formula = value
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'formula': self.formula,
-            'data': [spec.to_json() for spec in self.owned_spectra]
-        }
-
     def data_frame(self):
         import pandas as pd
         df = pd.concat([pd.Series(name=self.name, index=cos.raman_shift, data=cos.intensity)
@@ -131,6 +133,14 @@ class Component:
         df = df.fillna(method='ffill')
         df = df.fillna(method='bfill')
         return df
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'formula': self.formula,
+            'owned_spectra': [spec.to_json() for spec in self.owned_spectra]
+        }
 
     @staticmethod
     def from_json(json_spectrum):
@@ -142,11 +152,12 @@ class Component:
         name = json_spectrum.get('name')
         if name is None or name == '':
             raise IncompleteFieldError('json does not have a name')
-        data = json_spectrum.get('data')
-        if data is None or data == '':
-            raise IncompleteFieldError('json does not have a data')
+        json_owned_spectra = json_spectrum.get('owned_spectra')
+        if json_owned_spectra is None or json_owned_spectra == '':
+            raise IncompleteFieldError('json does not have a owned_spectra')
+        owned_spectra = [SpectrumBase.from_json(json_spec) for json_spec in json_owned_spectra]
         formula = json_spectrum.get('formula')
-        return Component(id=id, name=name, owned_spectra=data, formula=formula)
+        return Component(id=id, name=name, owned_spectra=owned_spectra, formula=formula)
 
     @staticmethod
     def of(dao: ComponentDAO, owned_spectra):
