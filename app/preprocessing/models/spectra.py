@@ -32,7 +32,7 @@ class Spectrum:
     def to_json(self):
         return {
             'name': self.name,
-            'data': self.data,
+            'data': self.data.tolist(),
         }
 
 

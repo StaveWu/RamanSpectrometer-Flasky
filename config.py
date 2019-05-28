@@ -8,6 +8,7 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     SPECTRA_PATH = os.path.join(basedir, 'data', 'spectra')
     COMPONENT_PATH = os.path.join(basedir, 'data', 'components')
+    MODEL_PATH = os.path.join(basedir, 'models')
 
     @staticmethod
     def init_app(app):

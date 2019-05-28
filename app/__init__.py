@@ -1,11 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import config
-from .io import SpectrumIO, ComponentIO
+from .io import SpectrumIO, ComponentIO, ModelIO
 
 db = SQLAlchemy()
 spectrum_io = SpectrumIO()
 component_io = ComponentIO()
+model_io = ModelIO()
 
 
 def create_app(config_name):
@@ -16,6 +17,7 @@ def create_app(config_name):
     db.init_app(app)
     spectrum_io.init_app(app)
     component_io.init_app(app)
+    model_io.init_app(app)
 
     from .api import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api/v1')
