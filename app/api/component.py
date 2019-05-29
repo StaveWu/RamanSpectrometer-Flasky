@@ -42,15 +42,32 @@ def get_component(id):
 
 
 @api.route('/components/<int:id>/model', methods=['POST'])
-def add_model(id):
+def create_model(id):
     if not ComponentRepository.contains(id):
         raise ValueError('component corresponding to model is not exist')
-    model = ComponentModel.create_model(id, ComponentRepository.find_all())
+
+    def create_model_task():
+        ComponentModelRepository.delete_by_id(id)
+        model = ComponentModel.create_model(id, ComponentRepository.find_all())
+        model.fit(SpectraRepository.find_all())
+        ComponentModelRepository.save_model(model)
+
+    thread = Thread(target=create_model_task)
+    thread.start()
+    return jsonify({}), 202
+
+
+@api.route('/components/<int:id>/model', methods=['PUT'])
+def tune_model(id):
+    model = ComponentModelRepository.find_by_id(id)
     model.fit(SpectraRepository.find_all())
     ComponentModelRepository.save_model(model)
-    return jsonify({}), 202
+    return jsonify({})
 
 
 @api.route('/models')
 def get_models():
-    pass
+    models = ComponentModelRepository.lightweight_find_all()
+    return jsonify({
+        'models': [model.to_json() for model in models]
+    })

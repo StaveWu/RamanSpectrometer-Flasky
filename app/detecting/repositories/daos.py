@@ -27,3 +27,9 @@ class ComponentSpectraDAO(db.Model):
     spec_id = db.Column(db.Integer, primary_key=True)
     spec_name = db.Column(db.Text)
     comp_id = db.Column(db.Integer)  # corresponding to ComponentDAO id
+
+
+class ModelDAO(db.Model):
+    __tablename__ = 'model_infos'
+    id = db.Column(db.Integer, primary_key=True)  # corresponding to ComponentDAO id
+    state = db.Column(db.Text)
