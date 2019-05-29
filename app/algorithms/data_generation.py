@@ -13,23 +13,15 @@ class ComponentRoller:
         return len(self.comps)
 
     def roll(self):
-        picked_id = np.random.choice(self.count(), self.roll_size, replace=False)
+        picked_ids = np.random.choice(self.count(), self.roll_size, replace=False)
         picked_comps = []
-        for i in picked_id:
+        for i in picked_ids:
             c = self.comps[i]
             r = np.random.randint(c.shape[1])
             picked_comps.append(c.iloc[:, r])
 
-        mask = np.zeros(self.count())
-        for i in picked_id:
-            mask[i] = 1
-        # translate hot bit to num.
-        # i.e. [1, 1, 0, 0] will be coded as 12
-        from functools import reduce
-        label = reduce(lambda x, y: x * 2 + y, mask)
-        label = label.astype('int')
-
         df = pd.concat(picked_comps, axis=1)
+        label = tuple(df.columns.tolist())
         return df.values, label
 
 
@@ -70,7 +62,7 @@ def generate_train_data(comps: List[pd.DataFrame], concen_upper_bound=1000, num_
             the_sample = pd.Series(name=label, data=np.sum(picked_comps * concen_vector, axis=0))
             samples.append(the_sample)
             if i % 100 == 0:
-                print('组合数%d: 第%d个样本 --- 标签%d，浓度比%s' % (n_class, i, label, concen_vector))
+                print('组合数{}: 第{}个样本 --- 标签{}，浓度比{}'.format(n_class, i, label, concen_vector))
     df = pd.concat(samples, axis=1)
     return df.values.T, df.columns.tolist()
 

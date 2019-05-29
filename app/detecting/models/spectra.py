@@ -1,6 +1,7 @@
 from ...exceptions import IncompleteFieldError
 from typing import List
 from ..repositories.daos import SpectrumDAO, ComponentDAO
+import pandas as pd
 
 
 class SpectrumBase:
@@ -98,6 +99,9 @@ class Spectrum(SpectrumBase):
         return Spectrum(id=dao.id, name=dao.name, timestamp=dao.timestamp,
                         data=data, component_ids=comp_ids)
 
+    def series(self):
+        return pd.Series(index=self.raman_shift, data=self.intensity, name=self.id)
+
 
 class Component:
     """Entity"""
@@ -127,8 +131,7 @@ class Component:
         self.dao.formula = value
 
     def data_frame(self):
-        import pandas as pd
-        df = pd.concat([pd.Series(name=self.name, index=cos.raman_shift, data=cos.intensity)
+        df = pd.concat([pd.Series(name=self.id, index=cos.raman_shift, data=cos.intensity)
                         for cos in self.owned_spectra], axis=1)
         df = df.fillna(method='ffill')
         df = df.fillna(method='bfill')

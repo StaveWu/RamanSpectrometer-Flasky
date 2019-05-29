@@ -48,7 +48,7 @@ def add_model(id):
     model = ComponentModel.create_model(id, ComponentRepository.find_all())
     model.fit(SpectraRepository.find_all())
     ComponentModelRepository.save_model(model)
-    return jsonify({})
+    return jsonify({}), 202
 
 
 @api.route('/models')
