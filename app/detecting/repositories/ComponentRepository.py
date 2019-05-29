@@ -48,3 +48,8 @@ def delete_by_id(id):
     db.session.commit()
 
 
+def contains(id):
+    comp_ids = db.session.query(ComponentDAO.id).all()
+    return id in comp_ids
+
+
