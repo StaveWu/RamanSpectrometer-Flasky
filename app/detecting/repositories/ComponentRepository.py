@@ -1,6 +1,7 @@
 from ... import db, component_io
 from ..models import Component, SpectrumBase
 from .daos import ComponentDAO, ComponentSpectraDAO
+import numpy as np
 
 
 def save_component(comp: Component):
@@ -12,6 +13,29 @@ def save_component(comp: Component):
         db.session.add(comp_spec_dao)
         db.session.commit()
         component_io.write(comp_spec_dao.spec_id, cos.data)
+
+
+def update_component(comp: Component):
+    comp_dao = ComponentDAO.query.filter(ComponentDAO.id == comp.id).one()
+    comp_dao.name = comp.name
+    comp_dao.formula = comp.formula
+    db.session.commit()
+
+    comp_spec_daos = ComponentSpectraDAO.query.filter(ComponentSpectraDAO.comp_id == comp.id).all()
+    diff = len(comp_spec_daos) - len(comp.owned_spectra)
+    if diff > 0:  # means some spectra deleted
+        for i in range(len(comp.owned_spectra), len(comp_spec_daos)):
+            component_io.delete(comp_spec_daos[i].spec_id)
+        ComponentSpectraDAO.query.filter(ComponentSpectraDAO.comp_id == comp.id).delete()
+        db.session.commit()
+    elif diff < 0:  # means some spectra added, we should synchronize persistence
+        for i in range(len(comp_spec_daos), len(comp.owned_spectra)):
+            comp_spec_dao = ComponentSpectraDAO(spec_name=comp.owned_spectra[i].name, comp_id=comp.id)
+            db.session.add(comp_spec_dao)
+            db.session.commit()
+            component_io.write(comp_spec_dao.spec_id, comp.owned_spectra[i].data)
+    else:
+        pass  # means no change about spectra(not a bit strict)
 
 
 def find_by_id(id) -> Component:

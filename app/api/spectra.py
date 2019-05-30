@@ -33,7 +33,7 @@ def tag_spectrum(id):
     probability = float(get_property(request.json, 'probability'))
 
     # modify spectrum's label
-    spectrum = SpectraRepository.find_by_id(id)  # may not found
+    spectrum = SpectraRepository.find_by_id(id)
     spectrum.set_component(comp_id, probability)
     SpectraRepository.save_spectrum(spectrum)
 

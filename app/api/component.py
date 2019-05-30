@@ -31,7 +31,7 @@ def update_component(id):
     d = request.json.copy()
     d['id'] = id
     comp = Component.from_json(d)
-    ComponentRepository.save_component(comp)
+    ComponentRepository.update_component(comp)
     return jsonify(comp.to_json())
 
 
