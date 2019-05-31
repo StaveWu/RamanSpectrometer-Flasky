@@ -2,7 +2,7 @@ from flask import jsonify, request
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentModelRepository
 from ..detecting.models import Spectrum
-from .utils import get_property
+from .utils import JsonWrapper
 
 
 @api.route('/spectra')
@@ -29,8 +29,9 @@ def add_spectrum():
 
 @api.route('/spectra/<int:id>', methods=['PATCH'])
 def tag_spectrum(id):
-    comp_id = int(get_property(request.json, 'compId'))
-    probability = float(get_property(request.json, 'probability'))
+    wrapper = JsonWrapper(request.json)
+    comp_id = wrapper.get_strict('compId', type=int)
+    probability = wrapper.get_strict('probability', type=float)
 
     # modify spectrum's label
     spectrum = SpectraRepository.find_by_id(id)

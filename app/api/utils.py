@@ -1,9 +1,27 @@
 from ..exceptions import IncompleteFieldError
 
 
-def get_property(data, prop_name: str):
-    prop = data.get(prop_name)
-    if prop is None or prop == '':
-        raise IncompleteFieldError('{} not found'.format(prop_name))
-    return prop
+class JsonWrapper:
+    """Value object"""
+    def __init__(self, json):
+        if not isinstance(json, dict):
+            raise ValueError('expect dict but get {}'.format(type(json)))
+        self.json = json
+
+    def get_strict(self, key, type=None):
+        res = self.json.get(key)
+        if res is None or res == '':
+            raise IncompleteFieldError('{} not found'.format(key))
+        if isinstance(res, dict):
+            return JsonWrapper(res)
+        elif type:
+            return type(res)
+        else:
+            return res
+
+    def get(self, key):
+        res = self.json.get(key)
+        return JsonWrapper(res) if isinstance(res, dict) else res
+
+
 
