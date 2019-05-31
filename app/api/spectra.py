@@ -2,7 +2,7 @@ from flask import jsonify, request
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentModelRepository
 from ..detecting.models import Spectrum
-from .utils import JsonWrapper
+from ..utils import JsonWrapper
 
 
 @api.route('/spectra')

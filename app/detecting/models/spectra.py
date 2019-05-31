@@ -1,7 +1,7 @@
-from ...exceptions import IncompleteFieldError
 from typing import List
 from ..repositories.daos import SpectrumDAO, ComponentDAO
 import pandas as pd
+from ...utils import JsonWrapper
 
 
 class SpectrumBase:
@@ -38,12 +38,9 @@ class SpectrumBase:
 
     @staticmethod
     def from_json(json_spec):
-        name = json_spec.get('name')
-        if not name:
-            raise IncompleteFieldError('json does not have a name')
-        data = json_spec.get('data')
-        if not data:
-            raise IncompleteFieldError('json does not have a data')
+        wrapper = JsonWrapper(json_spec)
+        name = wrapper.get_strict('name')
+        data = wrapper.get_strict('data')
         return SpectrumBase(name, data)
 
 
@@ -81,17 +78,10 @@ class Spectrum(SpectrumBase):
 
     @staticmethod
     def from_json(json_spectrum):
-        id = json_spectrum.get('id')
-        try:
-            id = int(id)
-        except TypeError:
-            id = None
-        name = json_spectrum.get('name')
-        if name is None or name == '':
-            raise IncompleteFieldError('json does not have a name')
-        data = json_spectrum.get('data')
-        if data is None or data == '':
-            raise IncompleteFieldError('json does not have a data')
+        wrapper = JsonWrapper(json_spectrum)
+        id = wrapper.get('id')
+        name = wrapper.get_strict('name')
+        data = wrapper.get_strict('data')
         return Spectrum(id, name, data)
 
     @staticmethod
@@ -146,20 +136,13 @@ class Component:
         }
 
     @staticmethod
-    def from_json(json_spectrum):
-        id = json_spectrum.get('id')
-        try:
-            id = int(id)
-        except TypeError:
-            id = None
-        name = json_spectrum.get('name')
-        if name is None or name == '':
-            raise IncompleteFieldError('json does not have a name')
-        json_owned_spectra = json_spectrum.get('owned_spectra')
-        if json_owned_spectra is None or json_owned_spectra == '':
-            raise IncompleteFieldError('json does not have a owned_spectra')
+    def from_json(json_comp):
+        wrapper = JsonWrapper(json_comp)
+        id = wrapper.get('id')
+        name = wrapper.get_strict('name')
+        json_owned_spectra = wrapper.get_strict('owned_spectra')
         owned_spectra = [SpectrumBase.from_json(json_spec) for json_spec in json_owned_spectra]
-        formula = json_spectrum.get('formula')
+        formula = wrapper.get('formula')
         return Component(id=id, name=name, owned_spectra=owned_spectra, formula=formula)
 
     @staticmethod

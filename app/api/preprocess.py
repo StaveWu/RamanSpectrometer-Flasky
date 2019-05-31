@@ -1,7 +1,7 @@
 from . import api
 from ..preprocessing.models import Spectrum, PrerocessingService
 from flask import jsonify, request
-from .utils import JsonWrapper
+from ..utils import JsonWrapper
 
 
 @api.route('/denoises/dae', methods=['POST'])

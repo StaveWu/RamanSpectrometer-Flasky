@@ -1,4 +1,4 @@
-from ..exceptions import IncompleteFieldError
+from .exceptions import IncompleteFieldError
 
 
 class JsonWrapper:
