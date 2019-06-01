@@ -1,6 +1,9 @@
 from scipy.signal import savgol_filter
 from tensorflow import keras
 import numpy as np
+import os
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 def dae(x):
@@ -10,7 +13,7 @@ def dae(x):
         x = x.reshape(-1, 1)
     if dims == 2:
         x = np.expand_dims(x, axis=2)
-    model = keras.models.load_model('./dae.h5')
+    model = keras.models.load_model('{}/dae.h5'.format(basedir))
     res = model.predict(x)
     if dims == 2:
         res = np.squeeze(res, axis=2)
