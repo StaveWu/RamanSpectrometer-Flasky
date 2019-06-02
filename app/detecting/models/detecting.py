@@ -8,8 +8,8 @@ from enum import Enum
 
 
 class ModelState(Enum):
-    ONLINE = 'online',
-    OFFLINE = 'offline',
+    ONLINE = 'online'
+    OFFLINE = 'offline'
     BUSY = 'busy'
 
 
@@ -42,7 +42,7 @@ class ComponentModel:
         # get xs and ys for training
         xs = df.values.T
         ys = np.array([self.comp_id in spec.component_ids for spec in spectra]).astype('int')
-        self.delegate.fit(xs, ys)
+        self.delegate.fit(xs, ys, batch_size=4, epochs=20)
         self._state = ModelState.ONLINE
 
     @staticmethod

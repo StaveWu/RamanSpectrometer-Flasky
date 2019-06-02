@@ -1,5 +1,5 @@
 from . import api
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 from ..detecting.models import Component, ComponentModel
 from ..detecting.repositories import ComponentRepository, ComponentModelRepository, SpectraRepository
 from threading import Thread

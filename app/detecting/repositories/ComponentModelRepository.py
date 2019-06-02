@@ -10,7 +10,7 @@ def find_by_id(id):
 
 
 def save_model(model: ComponentModel):
-    model_io.save(model.delegate)
+    model_io.write(model.comp_id, model.delegate)
     dao = ModelDAO(id=model.comp_id, state=model.state)
     db.session.add(dao)
     db.session.commit()

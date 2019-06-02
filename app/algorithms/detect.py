@@ -10,7 +10,7 @@ class Model:
     def predict(self, xs):
         pass
 
-    def fit(self, xs, ys):
+    def fit(self, xs, ys, batch_size, epochs):
         pass
 
     def save(self, path):
@@ -35,7 +35,8 @@ def _pre_process(xs):
 
 
 class MultiTaskModel(Model):
-    def __init__(self, path=None):
+    def __init__(self, path=None, units_output=6):
+        self.units_output = units_output
         if not path:
             self.model = self._new_model()
             self.trained = False
@@ -43,8 +44,7 @@ class MultiTaskModel(Model):
             self.model = self._load_model(path)
             self.trained = True
 
-    @staticmethod
-    def _new_model():
+    def _new_model(self):
         model = keras.models.Sequential()
         model.add(keras.layers.LocallyConnected1D(32, 11, strides=5, activation='relu', name='first_conv_layer',
                                                   kernel_constraint=keras.constraints.min_max_norm(),
@@ -62,7 +62,7 @@ class MultiTaskModel(Model):
         model.add(keras.layers.Dropout(0.5))
         model.add(keras.layers.Dense(64, activation='relu'))
         model.add(keras.layers.Dense(16, activation='relu'))
-        model.add(keras.layers.Dense(6, name='last_dense_layer'))
+        model.add(keras.layers.Dense(self.units_output, name='last_dense_layer'))
         model.add(keras.layers.Activation('sigmoid'))
         model.summary()
 
@@ -75,11 +75,12 @@ class MultiTaskModel(Model):
     def _load_model(model_path):
         return keras.models.load_model(model_path)
 
-    def fit(self, xs, ys):
+    def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
         shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
-        self.model.fit(xs, ys)
+        self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
+        self.trained = True
 
     def predict(self, xs):
         return self.model.predict(xs)
@@ -89,9 +90,10 @@ class MultiTaskModel(Model):
 
     def to_transferred_model(self):
         if not self.trained:
-            raise RuntimeError('multi-task model is not trained')
+            raise RuntimeError('multi-task model has not been trained')
         else:
-            return TransferredModel(convolutional_base=self.model.layers)
+            convolutional_base = self.model.layers[:-4]
+            return TransferredModel(convolutional_base=convolutional_base)
 
 
 class TransferredModel(Model):
@@ -115,11 +117,11 @@ class TransferredModel(Model):
                                    optimizer=keras.optimizers.Adam(lr=1e-5),
                                    metrics=['accuracy'])
 
-    def fit(self, xs, ys):
+    def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
         shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
-        self.model.fit(xs, ys)
+        self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
 
     def predict(self, xs):
         return self.model.predict(xs)
@@ -136,8 +138,8 @@ class ModelFactory:
 
     @staticmethod
     def new_initial_transferred_model(xs, ys):
-        multitask_model = MultiTaskModel()
-        multitask_model.fit(xs, ys)
+        multitask_model = MultiTaskModel(units_output=ys.shape[1])
+        multitask_model.fit(xs, ys, batch_size=32, epochs=30)
         return multitask_model.to_transferred_model()
 
     @staticmethod

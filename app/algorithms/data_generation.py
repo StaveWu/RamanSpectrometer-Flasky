@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import normalize, scale
 from typing import List
+from functools import reduce
 
 
 class ComponentRoller:
@@ -15,14 +16,31 @@ class ComponentRoller:
     def roll(self):
         picked_ids = np.random.choice(self.count(), self.roll_size, replace=False)
         picked_comps = []
+        picked_comp_ids = []  # to hold component ids instead of list id where component be.
         for i in picked_ids:
+            # random select a sample from existing samples
             c = self.comps[i]
             r = np.random.randint(c.shape[1])
             picked_comps.append(c.iloc[:, r])
+            # gather component id
+            picked_comp_ids.append(c.columns[0])
 
         df = pd.concat(picked_comps, axis=1)
-        label = tuple(df.columns.tolist())
-        return df.values, label
+        return df.values, self._to_str_label(picked_comp_ids)
+
+    @staticmethod
+    def _to_str_label(comp_ids: list):
+        """
+        change comp_ids to str label. e.g.
+        (1, 2, 5) ==> '11001'
+        :param comp_ids: a tuple containing picked component id
+        :return: str label
+        """
+        str_len = max(comp_ids)
+        mask = [0] * str_len
+        for i in comp_ids:
+            mask[i-1] = 1
+        return reduce(lambda x, y: x + y, map(str, mask))
 
 
 class ConcentrationRoller:
@@ -48,6 +66,15 @@ class ConcentrationRoller:
 
 
 def generate_train_data(comps: List[pd.DataFrame], concen_upper_bound=1000, num_per_combination=1000):
+    """
+    use for generating train data
+    :param comps: component list. each component in the list corresponds tp a component, represented by
+    a dataframe, where each column of dataframe is a sample of the component, the column name indicates the
+    component id, the index indicates Raman shift, and the values indicate intensity.
+    :param concen_upper_bound:
+    :param num_per_combination:
+    :return: (data, labels)
+    """
     cps = [to_int_index(c) for c in comps]
     cps = alignment(cps)
     cps = [scale_dataframe(c) for c in cps]
@@ -59,12 +86,26 @@ def generate_train_data(comps: List[pd.DataFrame], concen_upper_bound=1000, num_
         for i in range(num_per_combination):
             picked_comps, label = comps_roller.roll()
             concen_vector = concen_roller.roll_unique(label)
-            the_sample = pd.Series(name=label, data=np.sum(picked_comps * concen_vector, axis=0))
+            the_sample = pd.Series(name=label, data=np.sum(picked_comps * concen_vector, axis=1))
             samples.append(the_sample)
             if i % 100 == 0:
                 print('组合数{}: 第{}个样本 --- 标签{}，浓度比{}'.format(n_class, i, label, concen_vector))
     df = pd.concat(samples, axis=1)
-    return df.values.T, df.columns.tolist()
+    return df.values.T, np.array(_to_vectors(df.columns.tolist()))
+
+
+def _to_vectors(labels):
+    """
+    e.g. ['11', '11001'] ==> [[1, 1, 0, 0, 0], [1, 1, 0, 0, 1]]
+    :param labels:
+    :return:
+    """
+    res = [[int(s) for s in label] for label in labels]
+    max_len = 0
+    for ele in res:
+        if len(ele) > max_len:
+            max_len = len(ele)
+    return [ele + [0] * (max_len - len(ele)) for ele in res]
 
 
 def to_int_index(df: pd.DataFrame):
