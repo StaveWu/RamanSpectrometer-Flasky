@@ -46,13 +46,16 @@ def create_model(id):
     if not ComponentRepository.contains(id):
         raise ValueError('component corresponding to model is not exist')
 
-    def create_model_task():
-        ComponentModelRepository.delete_by_id(id)
-        model = ComponentModel.create_model(id, ComponentRepository.find_all())
-        model.fit(SpectraRepository.find_all())
+    ComponentModelRepository.delete_by_id(id)
+    comps = ComponentRepository.find_all()
+    spectra = SpectraRepository.find_all()
+
+    def create_model_task(id, comps, spectra):
+        model = ComponentModel.create_model(id, comps)
+        model.fit(spectra)
         ComponentModelRepository.save_model(model)
 
-    thread = Thread(target=create_model_task)
+    thread = Thread(target=create_model_task, args=(id, comps, spectra))
     thread.start()
     return jsonify({}), 202
 
@@ -71,3 +74,9 @@ def get_models():
     return jsonify({
         'models': [model.to_json() for model in models]
     })
+
+
+@api.route('/models/<int:id>', methods=['DELETE'])
+def delete_model(id):
+    ComponentModelRepository.delete_by_id(id)
+    return jsonify({})

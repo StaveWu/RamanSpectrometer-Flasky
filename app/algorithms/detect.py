@@ -22,7 +22,7 @@ def _to_input_shape(xs):
         return xs
     elif xs.shape[1] < 3000:
         # fill zeros in the end of xs
-        return np.array([x + [0] * (3000 - len(x)) for x in xs])
+        return np.array([list(x) + [0] * (3000 - len(x)) for x in xs])
     else:
         return xs[:, :3000]
 

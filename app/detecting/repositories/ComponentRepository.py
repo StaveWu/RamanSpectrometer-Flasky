@@ -1,7 +1,7 @@
 from ... import db, component_io
 from ..models import Component, SpectrumBase
 from .daos import ComponentDAO, ComponentSpectraDAO
-import numpy as np
+from sqlalchemy import exists
 
 
 def save_component(comp: Component):
@@ -73,7 +73,6 @@ def delete_by_id(id):
 
 
 def contains(id):
-    comp_ids = db.session.query(ComponentDAO.id).all()
-    return id in comp_ids
+    return db.session.query(exists().where(ComponentDAO.id == id)).scalar()
 
 
