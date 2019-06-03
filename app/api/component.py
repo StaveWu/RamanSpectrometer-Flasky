@@ -50,12 +50,15 @@ def create_model(id):
     comps = ComponentRepository.find_all()
     spectra = SpectraRepository.find_all()
 
-    def create_model_task(id, comps, spectra):
+    def create_model_task(app, id, comps, spectra):
         model = ComponentModel.create_model(id, comps)
         model.fit(spectra)
-        ComponentModelRepository.save_model(model)
+        with app.app_context():
+            ComponentModelRepository.save_model(model)
 
-    thread = Thread(target=create_model_task, args=(id, comps, spectra))
+    # start a thread to handle this expensive work
+    thread = Thread(target=create_model_task,
+                    args=(current_app._get_current_object(), id, comps, spectra))
     thread.start()
     return jsonify({}), 202
 
