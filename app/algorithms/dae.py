@@ -4,7 +4,7 @@ import tensorflow as tf
 class DenoisingAutoEncoder:
 
     def __init__(self, path):
-        # sess and graph must be assigned in flask app
+        # sess and graph must be assigned in any multi-thread app
         self.sess = tf.Session()
         self.graph = tf.get_default_graph()
         tf.keras.backend.set_session(self.sess)
