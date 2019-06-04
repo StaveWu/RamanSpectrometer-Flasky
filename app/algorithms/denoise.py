@@ -2,16 +2,11 @@ from scipy.signal import savgol_filter
 import numpy as np
 from .utils import to_input_shape
 import os
-import tensorflow as tf
+from .dae import DenoisingAutoEncoder
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-
-sess = tf.Session()
-graph = tf.get_default_graph()
-tf.keras.backend.set_session(sess)
-print('------------------import dae-----------------')
-dae_model = tf.keras.models.load_model('{}/dae.h5'.format(basedir))
+dae_model = DenoisingAutoEncoder('{}/dae.h5'.format(basedir))
 
 
 def dae(x):
@@ -25,11 +20,7 @@ def dae(x):
     x = to_input_shape(x, 3000)
     x = np.expand_dims(x, axis=2)
 
-    global graph
-    global sess
-    with graph.as_default():
-        tf.keras.backend.set_session(sess)
-        res = dae_model.predict(x)
+    res = dae_model.predict(x)
 
     res = np.squeeze(res, axis=2)
     res = to_input_shape(res, features)
