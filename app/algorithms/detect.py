@@ -4,6 +4,7 @@ from sklearn.utils import shuffle
 import numpy as np
 from .debackground import airPLS
 from .denoise import dae
+from .utils import to_input_shape
 
 
 class Model:
@@ -17,18 +18,8 @@ class Model:
         pass
 
 
-def _to_input_shape(xs):
-    if xs.shape[1] == 3000:
-        return xs
-    elif xs.shape[1] < 3000:
-        # fill zeros in the end of xs
-        return np.array([list(x) + [0] * (3000 - len(x)) for x in xs])
-    else:
-        return xs[:, :3000]
-
-
 def _pre_process(xs):
-    xs = _to_input_shape(xs)
+    xs = to_input_shape(xs, 3000)
     xs = np.array([airPLS(x, lambda_=50) for x in xs])
     xs = minmax_scale(xs, axis=1)
     return dae(xs)
