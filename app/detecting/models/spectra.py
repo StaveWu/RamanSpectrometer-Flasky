@@ -15,9 +15,16 @@ class DetectResult:
 
     def to_json(self):
         return {
-            'comp_id': self.comp_id,
+            'id': self.comp_id,
             'probability': self.probability
         }
+
+    @staticmethod
+    def from_json(json_res):
+        wrapper = JsonWrapper(json_res)
+        comp_id = wrapper.get_strict('id', type=int)
+        probability = wrapper.get_strict('probability', type=float)
+        return DetectResult(comp_id, probability)
 
 
 class SpectrumBase:
