@@ -5,6 +5,7 @@ import numpy as np
 from .debackground import airPLS
 from .denoise import dae
 from .utils import to_input_shape
+import tensorflow as tf
 
 
 class Model:
@@ -22,7 +23,8 @@ def _pre_process(xs):
     xs = to_input_shape(xs, 3000)
     xs = np.array([airPLS(x, lambda_=50) for x in xs])
     xs = minmax_scale(xs, axis=1)
-    return dae(xs)
+    xs = dae(xs)
+    return xs
 
 
 class MultiTaskModel(Model):
@@ -34,6 +36,9 @@ class MultiTaskModel(Model):
         else:
             self.model = self._load_model(path)
             self.trained = True
+        # hack code, to make sure model running without error on multi-thread app
+        self.sess = tf.Session()
+        self.graph = tf.get_default_graph()
 
     def _new_model(self):
         model = keras.models.Sequential()
@@ -70,11 +75,16 @@ class MultiTaskModel(Model):
         xs = _pre_process(xs)
         shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
-        self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
+        print('================try fit=================')
+        with self.graph.as_default():
+            tf.keras.backend.set_session(self.sess)
+            self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
         self.trained = True
 
     def predict(self, xs):
-        return self.model.predict(xs)
+        with self.graph.as_default():
+            tf.keras.backend.set_session(self.sess)
+            return self.model.predict(xs)
 
     def save(self, path):
         self.model.save(path)
@@ -107,15 +117,22 @@ class TransferredModel(Model):
                 self.model.compile(loss=keras.losses.binary_crossentropy,
                                    optimizer=keras.optimizers.Adam(lr=1e-5),
                                    metrics=['accuracy'])
+        # hack code, to make sure model running without error on multi-thread app
+        self.sess = tf.Session()
+        self.graph = tf.get_default_graph()
 
     def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
         shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
-        self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
+        with self.graph.as_default():
+            tf.keras.backend.set_session(self.sess)
+            self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
 
     def predict(self, xs):
-        return self.model.predict(xs)
+        with self.graph.as_default():
+            tf.keras.backend.set_session(self.sess)
+            return self.model.predict(xs)
 
     def save(self, path):
         self.model.save(path)

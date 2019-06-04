@@ -23,8 +23,8 @@ def async_fit_model(comp_id, spectra):
         model.fit(spectra)
         state.state = State.ONLINE
         with app.app_context():
-            ModelStateRepository.save_state(state)
             ComponentModelRepository.save_model(model)
+            ModelStateRepository.update_state(state)
 
     thread = Thread(target=retrain_model_task,
                     args=(current_app._get_current_object(), model, spectra))
@@ -45,7 +45,7 @@ def async_create_model(comp_id, comps, spectra):
         state.state = State.ONLINE
         with app.app_context():
             ComponentModelRepository.save_model(model)
-            ModelStateRepository.save_state(state)
+            ModelStateRepository.update_state(state)
 
     # start a thread to handle this expensive work
     thread = Thread(target=create_model_task,

@@ -2,7 +2,22 @@ from typing import List
 from ..repositories.daos import SpectrumDAO, ComponentDAO
 import pandas as pd
 from ...utils import JsonWrapper
-from .detecting import DetectResult
+
+
+class DetectResult:
+    """value object"""
+    def __init__(self, comp_id, probability):
+        self.comp_id = comp_id
+        self.probability = probability
+
+    def exist(self):
+        return self.probability > 0.5
+
+    def to_json(self):
+        return {
+            'comp_id': self.comp_id,
+            'probability': self.probability
+        }
 
 
 class SpectrumBase:
