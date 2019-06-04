@@ -2,6 +2,7 @@ from flask import jsonify, request
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentModelRepository
 from ..detecting.models import Spectrum, DetectResult
+from ..utils import JsonWrapper
 
 
 @api.route('/spectra')
@@ -39,10 +40,21 @@ def tag_spectrum(id):
 
 @api.route('/spectra/<int:id>/components', methods=['POST'])
 def detect_components(id):
-    spec = Spectrum.from_json(request.json)
-    model = ComponentModelRepository.find_by_id(id)
-    detect_results = model.predict(spec)
+    wrapper = JsonWrapper(request.json)
+    comp_ids_to_detect = wrapper.get_strict('comp_ids', type=list)
+
+    # why we get spectrum from request instead of repository?
+    # this is because some preprocessing action preformed in front end
+    # and the performed result didn't save here
+    d = request.json.copy()
+    d['id'] = id
+    spec = Spectrum.from_json(d)
+
+    results = []
+    for cid in comp_ids_to_detect:
+        model = ComponentModelRepository.find_by_id(cid)
+        results.append(model.predict(spec)[0])
     return jsonify({
-        'results': [res.to_json() for res in detect_results]
+        'results': [res.to_json() for res in results]
     })
 

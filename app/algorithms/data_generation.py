@@ -76,6 +76,7 @@ def generate_train_data(comps: List[pd.DataFrame], concen_upper_bound=1000, num_
     :return: (data, labels)
     """
     cps = [to_int_index(c) for c in comps]
+    cps = [zero_end_interpolation(c) for c in comps]
     cps = alignment(cps)
     cps = [scale_dataframe(c) for c in cps]
 
@@ -145,6 +146,34 @@ def alignment(dfs: List[pd.DataFrame]):
 
 def scale_dataframe(df: pd.DataFrame):
     return pd.DataFrame(index=df.index, data=scale(df.values), columns=df.columns.tolist())
+
+
+def zero_end_interpolation(df: pd.DataFrame):
+    """
+    interpolation from zero to end.
+    e.g. the following series:
+        index data
+        2     1
+        3     2
+        5     3
+    may change to:
+        index data
+        0     1
+        1     1
+        2     1
+        3     2
+        4     2
+        5     3
+    :param df:
+    :return: data frame
+    """
+    end = df.index[-1]
+    empty_df = pd.DataFrame(index=np.arange(0, end + 1, 1))
+    res = pd.concat([df, empty_df], axis=1)
+    res = res.fillna(method='ffill')
+    res = res.fillna(method='bfill')
+    return res
+
 
 
 
