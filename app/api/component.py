@@ -1,8 +1,7 @@
 from . import api
-from flask import request, jsonify, current_app
-from ..detecting.models import Component, ComponentModel
-from ..detecting.repositories import ComponentRepository, ComponentModelRepository, SpectraRepository
-from threading import Thread
+from flask import request, jsonify
+from ..detecting.models import Component, ModelChangeService
+from ..detecting.repositories import ComponentRepository, SpectraRepository, ModelStateRepository
 
 
 @api.route('/components')
@@ -46,34 +45,23 @@ def create_model(id):
     if not ComponentRepository.contains(id):
         raise ValueError('component corresponding to model is not exist')
 
-    ComponentModelRepository.delete_by_id(id)
     comps = ComponentRepository.find_all()
     spectra = SpectraRepository.find_all()
+    ModelChangeService.async_create_model(id, comps, spectra)
 
-    def create_model_task(app, id, comps, spectra):
-        model = ComponentModel.create_model(id, comps)
-        model.fit(spectra)
-        with app.app_context():
-            ComponentModelRepository.save_model(model)
-
-    # start a thread to handle this expensive work
-    thread = Thread(target=create_model_task,
-                    args=(current_app._get_current_object(), id, comps, spectra))
-    thread.start()
     return jsonify({}), 202
 
 
 @api.route('/components/<int:id>/model', methods=['PUT'])
 def tune_model(id):
-    model = ComponentModelRepository.find_by_id(id)
-    model.fit(SpectraRepository.find_all())
-    ComponentModelRepository.save_model(model)
+    spectra = SpectraRepository.find_all()
+    ModelChangeService.async_fit_model(id, spectra)
     return jsonify({})
 
 
 @api.route('/models')
 def get_models():
-    models = ComponentModelRepository.lightweight_find_all()
+    models = ModelStateRepository.find_all()
     return jsonify({
         'models': [model.to_json() for model in models]
     })
@@ -81,5 +69,5 @@ def get_models():
 
 @api.route('/models/<int:id>', methods=['DELETE'])
 def delete_model(id):
-    ComponentModelRepository.delete_by_id(id)
+    ModelChangeService.delete_by_id(id)
     return jsonify({})

@@ -18,7 +18,7 @@ develop-eggs
 lib
 lib64
 data
-models
+modelsaves
 __pycache__
 
 # Installer logs

@@ -1,8 +1,7 @@
 from flask import jsonify, request
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentModelRepository
-from ..detecting.models import Spectrum
-from ..utils import JsonWrapper
+from ..detecting.models import Spectrum, DetectResult
 
 
 @api.route('/spectra')
@@ -29,20 +28,21 @@ def add_spectrum():
 
 @api.route('/spectra/<int:id>', methods=['PATCH'])
 def tag_spectrum(id):
-    wrapper = JsonWrapper(request.json)
-    comp_id = wrapper.get_strict('compId', type=int)
-    probability = wrapper.get_strict('probability', type=float)
+    detect_result = DetectResult.from_json(request.json)
 
-    # modify spectrum's label
     spectrum = SpectraRepository.find_by_id(id)
-    spectrum.set_component(comp_id, probability)
+    spectrum.set_component(detect_result)
     SpectraRepository.save_spectrum(spectrum)
-
-    # retrain component model
-    model = ComponentModelRepository.find_by_id(comp_id)
-    model.fit(SpectraRepository.find_all())
-    ComponentModelRepository.save_model(model)
 
     return jsonify({})
 
+
+@api.route('/spectra/<int:id>/components', methods=['POST'])
+def detect_components(id):
+    spec = Spectrum.from_json(request.json)
+    model = ComponentModelRepository.find_by_id(id)
+    detect_results = model.predict(spec)
+    return jsonify({
+        'results': [res.to_json() for res in detect_results]
+    })
 

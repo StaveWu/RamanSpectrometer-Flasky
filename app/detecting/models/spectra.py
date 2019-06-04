@@ -2,6 +2,7 @@ from typing import List
 from ..repositories.daos import SpectrumDAO, ComponentDAO
 import pandas as pd
 from ...utils import JsonWrapper
+from .detecting import DetectResult
 
 
 class SpectrumBase:
@@ -50,7 +51,7 @@ class Spectrum(SpectrumBase):
     def __init__(self, id, name, data, timestamp=None, component_ids=None):
         super().__init__(name, data)
         self.dao = SpectrumDAO(id=id, name=name, timestamp=timestamp)
-        self.label = Label(component_ids)
+        self.component_ids = component_ids
 
     @property
     def id(self):
@@ -58,15 +59,17 @@ class Spectrum(SpectrumBase):
         return self.dao.id
 
     @property
-    def component_ids(self):
-        return self.label.comp_ids
-
-    @property
     def timestamp(self):
         return self.dao.timestamp
 
-    def set_component(self, comp_id, probability):
-        self.label = self.label.to_label(comp_id, probability)
+    def set_component(self, detect_result: DetectResult):
+        if detect_result.exist() and detect_result.comp_id not in self.component_ids:
+            self.component_ids.append(detect_result.comp_id)
+        if not detect_result.exist():
+            self.component_ids.remove(detect_result.comp_id)
+
+    def is_existing(self, comp_id):
+        return comp_id in self.component_ids
 
     def to_json(self):
         return {
@@ -175,24 +178,3 @@ class SpectrumData:
         return self.data[:, 0]
 
 
-class Label:
-    """Value Object"""
-
-    def __init__(self, comp_ids):
-        self.comp_ids = comp_ids
-        if not self.comp_ids:
-            self.comp_ids = []
-
-    def one_hot(self):
-        pass
-
-    def one_hot_int(self):
-        pass
-
-    def to_label(self, comp_id, probability):
-        comp_ids = self.comp_ids.copy()
-        if probability > 0.5:
-            comp_ids.append(comp_id)
-        else:
-            comp_ids.remove(comp_id)
-        return Label(comp_ids)
