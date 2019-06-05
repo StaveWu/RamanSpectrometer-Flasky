@@ -73,7 +73,7 @@ class Spectrum(SpectrumBase):
     def __init__(self, id, name, data, timestamp=None, component_ids=None):
         super().__init__(name, data)
         self.dao = SpectrumDAO(id=id, name=name, timestamp=timestamp)
-        self.component_ids = component_ids
+        self.component_ids = component_ids if component_ids else []
 
     @property
     def id(self):

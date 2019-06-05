@@ -9,6 +9,12 @@ import tensorflow as tf
 
 
 class Model:
+    def __init__(self):
+        # hack code, to make sure model running without error on multi-thread app
+        self.sess = tf.Session()
+        self.graph = tf.get_default_graph()
+        tf.keras.backend.set_session(self.sess)
+
     def predict(self, xs):
         pass
 
@@ -21,7 +27,7 @@ class Model:
 
 def _pre_process(xs):
     xs = to_input_shape(xs, 3000)
-    xs = np.array([airPLS(x, lambda_=50) for x in xs])
+    # xs = np.array([airPLS(x, lambda_=50) for x in xs])
     xs = minmax_scale(xs, axis=1)
     xs = dae(xs)
     return xs
@@ -29,16 +35,14 @@ def _pre_process(xs):
 
 class MultiTaskModel(Model):
     def __init__(self, path=None, units_output=6):
+        super().__init__()
         self.units_output = units_output
         if not path:
             self.model = self._new_model()
             self.trained = False
         else:
-            self.model = self._load_model(path)
+            self.model = keras.models.load_model(path)
             self.trained = True
-        # hack code, to make sure model running without error on multi-thread app
-        self.sess = tf.Session()
-        self.graph = tf.get_default_graph()
 
     def _new_model(self):
         model = keras.models.Sequential()
@@ -69,7 +73,7 @@ class MultiTaskModel(Model):
 
     @staticmethod
     def _load_model(model_path):
-        return keras.models.load_model(model_path)
+        return MultiTaskModel(model_path)
 
     def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
@@ -96,17 +100,21 @@ class MultiTaskModel(Model):
             raise RuntimeError('multi-task model has not been trained')
         else:
             convolutional_base = self.model.layers[:-4]
-            return TransferredModel(convolutional_base=convolutional_base)
+            return TransferredModel(sess=self.sess, graph=self.graph, convolutional_base=convolutional_base)
 
 
 class TransferredModel(Model):
-    def __init__(self, path=None, convolutional_base=None):
+    def __init__(self, path=None, sess=None, graph=None, convolutional_base=None):
+        super().__init__()
         if path:
             self.model = keras.models.load_model(path)
         else:
-            if not convolutional_base:
+            if not (sess and graph and convolutional_base):
                 raise RuntimeError('transferred model should be given one of path or convolutional base')
             else:
+                self.sess = sess
+                self.graph = graph
+                tf.keras.backend.set_session(self.sess)
                 for layer in convolutional_base:
                     layer.trainable = False
                 self.model = keras.models.Sequential(convolutional_base)
@@ -119,9 +127,6 @@ class TransferredModel(Model):
                 self.model.compile(loss=keras.losses.binary_crossentropy,
                                    optimizer=keras.optimizers.Adam(lr=1e-5),
                                    metrics=['accuracy'])
-        # hack code, to make sure model running without error on multi-thread app
-        self.sess = tf.Session()
-        self.graph = tf.get_default_graph()
 
     def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
@@ -151,7 +156,7 @@ class ModelFactory:
     @staticmethod
     def new_initial_transferred_model(xs, ys):
         multitask_model = MultiTaskModel(units_output=ys.shape[1])
-        multitask_model.fit(xs, ys, batch_size=32, epochs=30)
+        multitask_model.fit(xs, ys, batch_size=32, epochs=5)
         return multitask_model.to_transferred_model()
 
     @staticmethod
