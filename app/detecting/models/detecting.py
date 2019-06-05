@@ -57,8 +57,8 @@ class ComponentModel:
             target = [target]
         df = self._pre_process(target)
         xs = df.values.T
-        ys = self.delegate.predict(xs).round()
-        res = [DetectResult(self.comp_id, y) for y in ys]
+        ys = self.delegate.predict(xs).flatten().round(decimals=2)
+        res = [DetectResult(self.comp_id, float(y)) for y in ys]
         return res
 
     def fit(self, spectra: List[Spectrum]):

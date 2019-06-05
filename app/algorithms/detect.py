@@ -82,7 +82,12 @@ class MultiTaskModel(Model):
         print('================try fit=================')
         with self.graph.as_default():
             tf.keras.backend.set_session(self.sess)
-            self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
+            self.model.fit(xs, ys,
+                           batch_size=batch_size,
+                           epochs=epochs,
+                           verbose=2,
+                           validation_split=0.3,
+                           callbacks=[keras.callbacks.ReduceLROnPlateau(patience=3, factor=0.2)])
         self.trained = True
 
     def predict(self, xs):
@@ -134,7 +139,7 @@ class TransferredModel(Model):
         xs = np.expand_dims(xs, axis=2)
         with self.graph.as_default():
             tf.keras.backend.set_session(self.sess)
-            self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
+            self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs, verbose=2)
 
     def predict(self, xs):
         xs = to_input_shape(xs, 3000)
@@ -156,11 +161,9 @@ class ModelFactory:
     @staticmethod
     def new_initial_transferred_model(xs, ys):
         multitask_model = MultiTaskModel(units_output=ys.shape[1])
-        multitask_model.fit(xs, ys, batch_size=32, epochs=5)
+        multitask_model.fit(xs, ys, batch_size=32, epochs=20)
         return multitask_model.to_transferred_model()
 
     @staticmethod
     def new_multitask_model():
         return MultiTaskModel()
-
-
