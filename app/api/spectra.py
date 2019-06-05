@@ -33,7 +33,7 @@ def tag_spectrum(id):
 
     spectrum = SpectraRepository.find_by_id(id)
     spectrum.set_component(detect_result)
-    SpectraRepository.save_spectrum(spectrum)
+    SpectraRepository.update_spectrum(spectrum)
 
     return jsonify({})
 
