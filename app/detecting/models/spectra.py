@@ -85,10 +85,12 @@ class Spectrum(SpectrumBase):
         return self.dao.timestamp
 
     def set_component(self, detect_result: DetectResult):
-        if detect_result.exist() and detect_result.comp_id not in self.component_ids:
-            self.component_ids.append(detect_result.comp_id)
-        if not detect_result.exist() and detect_result in self.component_ids:
-            self.component_ids.remove(detect_result.comp_id)
+        if detect_result.exist():
+            if detect_result.comp_id not in self.component_ids:
+                self.component_ids.append(detect_result.comp_id)
+        else:
+            if detect_result.comp_id in self.component_ids:
+                self.component_ids.remove(detect_result.comp_id)
 
     def is_existing(self, comp_id):
         return comp_id in self.component_ids

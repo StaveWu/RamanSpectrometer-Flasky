@@ -21,7 +21,6 @@ def update_spectrum(spec: Spectrum):
     dao.name = spec.name
 
     SpectrumComponentsDAO.query.filter(SpectrumComponentsDAO.spec_id == spec.id).delete()
-    print(spec.component_ids)
     for comp_id in spec.component_ids:
         spec_comps_dao = SpectrumComponentsDAO(spec_id=spec.id, comp_id=comp_id)
         db.session.add(spec_comps_dao)
