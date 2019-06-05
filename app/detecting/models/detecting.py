@@ -34,7 +34,6 @@ class ModelState:
     def of(id, state_str):
         return ModelState(id, State(state_str))
 
-
     @staticmethod
     def from_json(json_res):
         wrapper = JsonWrapper(json_res)
@@ -80,7 +79,6 @@ class ComponentModel:
         # interpolation from zero to end
         df = zero_end_interpolation(df)
         return df
-
 
     @staticmethod
     def create_model(id, comps: List[Component]):

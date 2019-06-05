@@ -41,7 +41,7 @@ def tag_spectrum(id):
 @api.route('/spectra/<int:id>/components', methods=['POST'])
 def detect_components(id):
     wrapper = JsonWrapper(request.json)
-    comp_ids_to_detect = wrapper.get_strict('comp_ids', type=list)
+    comp_ids_to_detect = wrapper.get_strict('compIds', type=list)
 
     # why we get spectrum from request instead of repository?
     # this is because some preprocessing action preformed in front end

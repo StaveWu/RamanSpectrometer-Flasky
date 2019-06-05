@@ -73,7 +73,7 @@ class MultiTaskModel(Model):
 
     def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
-        shuffle(xs, ys)
+        xs, ys = shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
         print('================try fit=================')
         with self.graph.as_default():
@@ -82,6 +82,8 @@ class MultiTaskModel(Model):
         self.trained = True
 
     def predict(self, xs):
+        xs = to_input_shape(xs, 3000)
+        xs = np.expand_dims(xs, axis=2)
         with self.graph.as_default():
             tf.keras.backend.set_session(self.sess)
             return self.model.predict(xs)
@@ -123,13 +125,15 @@ class TransferredModel(Model):
 
     def fit(self, xs, ys, batch_size, epochs):
         xs = _pre_process(xs)
-        shuffle(xs, ys)
+        xs, ys = shuffle(xs, ys)
         xs = np.expand_dims(xs, axis=2)
         with self.graph.as_default():
             tf.keras.backend.set_session(self.sess)
             self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs)
 
     def predict(self, xs):
+        xs = to_input_shape(xs, 3000)
+        xs = np.expand_dims(xs, axis=2)
         with self.graph.as_default():
             tf.keras.backend.set_session(self.sess)
             return self.model.predict(xs)
@@ -139,7 +143,7 @@ class TransferredModel(Model):
 
     @staticmethod
     def load(path):
-        return keras.models.load_model(path)
+        return TransferredModel(path)
 
 
 class ModelFactory:
