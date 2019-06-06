@@ -58,3 +58,26 @@ def detect_components(id):
         'results': [res.to_json() for res in results]
     })
 
+
+@api.route('/spectra/components', methods=['POST'])
+def batch_detect_components():
+    wrapper = JsonWrapper(request.json)
+    spec_ids = wrapper.get_strict('specIds', type=list)
+    comp_ids = wrapper.get_strict('compIds', type=list)
+
+    spectra = [SpectraRepository.find_by_id(spec_id) for spec_id in spec_ids]
+
+    all_results = []
+    for comp_id in comp_ids:
+        model = ComponentModelRepository.find_by_id(comp_id)
+        all_results.append(model.predict(spectra))
+
+    response = []
+    for spec_id, results in zip(spec_ids, all_results):
+        response.append({
+            'specId': spec_id,
+            'results': [res.to_json() for res in results]
+        })
+    return jsonify(response)
+
+
