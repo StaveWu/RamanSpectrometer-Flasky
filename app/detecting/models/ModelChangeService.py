@@ -17,7 +17,7 @@ def async_fit_model(comp_id, spectra):
     model = ComponentModelRepository.find_by_id(comp_id)
     state = ModelStateRepository.find_by_id(comp_id)
     state.state = State.BUSY
-    ModelStateRepository.save_state(state)
+    ModelStateRepository.update_state(state)
 
     def retrain_model_task(app, model, spectra):
         model.fit(spectra)
