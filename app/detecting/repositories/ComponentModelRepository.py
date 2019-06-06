@@ -1,8 +1,9 @@
 from ..models.detecting import ComponentModel
 from ... import model_io
+from typing import List
 
 
-model_caches = []
+model_caches: List[ComponentModel] = []
 
 
 def _query_model_in_caches(id):
@@ -15,9 +16,10 @@ def _query_model_in_caches(id):
 def find_by_id(id):
     model = _query_model_in_caches(id)
     if not model:
-        model = model_io.read(id)
-    model_caches.append(model)
-    return ComponentModel(id, model)
+        delegate = model_io.read(id)
+        model = ComponentModel(id, delegate)
+        model_caches.append(model)
+    return model
 
 
 def save_model(model: ComponentModel):
