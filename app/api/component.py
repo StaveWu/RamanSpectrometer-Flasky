@@ -67,6 +67,12 @@ def get_models():
     })
 
 
+@api.route('/models/<int:id>')
+def get_model(id):
+    model = ModelStateRepository.find_by_id(id)
+    return jsonify(model.to_json())
+
+
 @api.route('/models/<int:id>', methods=['DELETE'])
 def delete_model(id):
     ModelChangeService.delete_by_id(id)

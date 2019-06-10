@@ -5,9 +5,9 @@ import os
 from .dae import DenoisingAutoEncoder
 
 
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    dae_model = DenoisingAutoEncoder('{}/dae.h5'.format(basedir))
+# if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+basedir = os.path.abspath(os.path.dirname(__file__))
+dae_model = DenoisingAutoEncoder('{}/dae.h5'.format(basedir))
 
 
 def dae(x):
