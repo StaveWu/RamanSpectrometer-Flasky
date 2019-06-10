@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, url_for
 from . import api
 from ..detecting.repositories import SpectraRepository, ComponentModelRepository
 from ..detecting.models import Spectrum, DetectResult
@@ -54,6 +54,13 @@ def detect_components(id):
     for cid in comp_ids_to_detect:
         model = ComponentModelRepository.find_by_id(cid)
         results.append(model.predict(spec)[0])
+
+    # tag spectrum after detecting
+    for res in results:
+        spec.set_component(res)
+    # update spectrum, note here using the preprocessed one
+    SpectraRepository.update_spectrum(spec)
+
     return jsonify({
         'results': [res.to_json() for res in results]
     })

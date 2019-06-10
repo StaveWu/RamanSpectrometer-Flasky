@@ -51,12 +51,13 @@ def airPLS():
     return jsonify(dbg_spec.to_json())
 
 
-@api.route('conventionals/cut-off', methods=['POST'])
+@api.route('conventionals/slice', methods=['POST'])
 def cut_off():
     spectrum = Spectrum.from_json(request.json)
     params = JsonWrapper(request.json).get('params')
-    start = params.get_strict('start', type=int)
-    end = params.get_strict('end', type=int)
+    wavenumbers_range = params.get_strict('wavenumbersRange', type=list)
+    start = wavenumbers_range[0]
+    end = wavenumbers_range[1]
     co_spec = PrerocessingService.cut_off(spectrum, start, end)
     return jsonify(co_spec.to_json())
 
