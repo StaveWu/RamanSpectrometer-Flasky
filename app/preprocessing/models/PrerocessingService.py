@@ -5,6 +5,7 @@ algorithms facade
 from .spectra import Spectrum
 from app.algorithms import debackground, denoise, conventional
 import numpy as np
+import pandas as pd
 
 
 def airPLS(spec: Spectrum, lambda_):
@@ -44,7 +45,9 @@ def dae(spec: Spectrum):
 
 
 def cut_off(spec: Spectrum, start, end):
-    data = np.array([spec.raman_shift[start: end], spec.intensity[start: end]]).T
+    s = pd.Series(index=spec.raman_shift, data=spec.intensity)
+    s = s.loc[start: end]
+    data = np.array([s.index, s.data]).T
     name = '{}-cutoff'.format(spec.name)
     return Spectrum(name, data)
 
