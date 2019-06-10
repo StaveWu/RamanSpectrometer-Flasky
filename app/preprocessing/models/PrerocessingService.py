@@ -43,4 +43,10 @@ def dae(spec: Spectrum):
     return Spectrum(name, data)
 
 
+def cut_off(spec: Spectrum, start, end):
+    data = np.array([spec.raman_shift[start: end], spec.intensity[start: end]]).T
+    name = '{}-cutoff'.format(spec.name)
+    return Spectrum(name, data)
+
+
 

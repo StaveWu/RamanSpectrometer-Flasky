@@ -27,7 +27,7 @@ class Model:
 
 def _pre_process(xs):
     xs = to_input_shape(xs, 3000)
-    # xs = np.array([airPLS(x, lambda_=50) for x in xs])
+    xs = np.array([airPLS(x, lambda_=50) for x in xs])
     xs = minmax_scale(xs, axis=1)
     xs = dae(xs)
     return xs
@@ -130,7 +130,7 @@ class TransferredModel(Model):
                 self.model.summary()
 
                 self.model.compile(loss=keras.losses.binary_crossentropy,
-                                   optimizer=keras.optimizers.Adam(lr=1e-5),
+                                   optimizer=keras.optimizers.Adam(),
                                    metrics=['accuracy'])
 
     def fit(self, xs, ys, batch_size, epochs):
