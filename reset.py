@@ -13,7 +13,7 @@ with app.app_context() as ctx:
 def recreate_path(path):
     if os.path.exists(path):
         rmtree(path)
-    os.mkdir(path)
+    os.makedirs(path)
 
 
 model_path = app.config['MODEL_PATH']
