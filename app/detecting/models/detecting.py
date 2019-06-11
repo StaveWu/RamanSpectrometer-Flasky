@@ -62,6 +62,8 @@ class ComponentModel:
         return res
 
     def fit(self, spectra: List[Spectrum]):
+        if len(spectra) == 0:
+            return
         df = self._pre_process(spectra)
         # get xs and ys for training
         xs = df.values.T
