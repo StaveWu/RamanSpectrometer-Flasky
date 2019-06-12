@@ -2,6 +2,7 @@ from . import api
 from flask import request, jsonify
 from ..detecting.models import Component, ModelChangeService
 from ..detecting.repositories import ComponentRepository, SpectraRepository, ModelStateRepository
+from ..exceptions import ValidationError
 
 
 @api.route('/components')
@@ -43,7 +44,7 @@ def get_component(id):
 @api.route('/components/<int:id>/model', methods=['POST'])
 def create_model(id):
     if not ComponentRepository.contains(id):
-        raise ValueError('component corresponding to model is not exist')
+        raise ValidationError('component corresponding to model is not exist')
 
     comps = ComponentRepository.find_all()
     spectra = SpectraRepository.find_all()

@@ -1,5 +1,5 @@
 from flask import jsonify
-from app.exceptions import IncompleteFieldError
+from app.exceptions import IncompleteFieldError, ValidationError
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from . import api
 
@@ -32,7 +32,7 @@ def server_error(message):
 
 
 @api.errorhandler(IncompleteFieldError)
-@api.errorhandler(ValueError)
+@api.errorhandler(ValidationError)
 def incomplete_field_error(e):
     return bad_request(e.args[0])
 
