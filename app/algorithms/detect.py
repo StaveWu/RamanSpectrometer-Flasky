@@ -2,8 +2,8 @@ from tensorflow import keras
 from sklearn.preprocessing import minmax_scale
 from sklearn.utils import shuffle
 import numpy as np
-from .debackground import airPLS
-from .denoise import dae
+# from .debackground import airPLS
+# from .denoise import dae
 from .utils import to_input_shape
 import tensorflow as tf
 
@@ -27,9 +27,9 @@ class Model:
 
 def _pre_process(xs):
     xs = to_input_shape(xs, 3000)
-    xs = np.array([airPLS(x, lambda_=50) for x in xs])
+    # xs = np.array([airPLS(x, lambda_=50) for x in xs])
     xs = minmax_scale(xs, axis=1)
-    xs = dae(xs)
+    # xs = dae(xs)
     return xs
 
 
