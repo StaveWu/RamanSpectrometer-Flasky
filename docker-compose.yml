@@ -9,11 +9,12 @@ services:
     links:
       - mysql:dbserver
     volumes:
-      - data:/home/flasky/data
-      - modelsaves:/home/flasky/modelsaves
+      - ./data:/home/flasky/data
+      - ./modelsaves:/home/flasky/modelsaves
   mysql:
     image: "mysql/mysql-server:5.7"
     env_file: .env-mysql
     restart: always
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./db-data:/var/lib/mysql
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
