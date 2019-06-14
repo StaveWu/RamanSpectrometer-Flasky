@@ -3,7 +3,7 @@ services:
   flasky:
     build: .
     ports:
-      - "8000:5000"
+      - "80:5000"
     env_file: .env
     restart: always
     links:
