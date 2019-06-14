@@ -1,6 +1,8 @@
 #!/bin/sh
 source venv/bin/activate
 
+exec python reset.py
+
 while true; do
     flask deploy
     if [[ "$?" == "0" ]]; then
