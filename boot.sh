@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 source venv/bin/activate
 
-exec python reset.py
+python reset.py
 
 while true; do
     flask deploy
