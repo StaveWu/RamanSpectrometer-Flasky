@@ -19,6 +19,7 @@ lib
 lib64
 data
 modelsaves
+db-data
 __pycache__
 
 # Installer logs
