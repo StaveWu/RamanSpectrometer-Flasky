@@ -8,7 +8,12 @@ services:
     restart: always
     links:
       - mysql:dbserver
+    volumes:
+      - data:/home/flasky/data
+      - modelsaves:/home/flasky/modelsaves
   mysql:
     image: "mysql/mysql-server:5.7"
     env_file: .env-mysql
     restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
