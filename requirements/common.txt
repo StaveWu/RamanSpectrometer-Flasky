@@ -1,4 +1,4 @@
-tensorflow==1.13.1
+tensorflow==2.5.3
 typing==3.6.4
 Rx==3.0.0b2
 numpy==1.16.4
