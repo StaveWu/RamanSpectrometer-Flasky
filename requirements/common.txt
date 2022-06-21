@@ -1,7 +1,7 @@
 tensorflow==1.13.1
 typing==3.6.4
 Rx==3.0.0b2
-numpy==1.16.4
+numpy==1.22.0
 scipy==1.2.1
 Flask_SQLAlchemy==2.3.2
 pytest==4.5.0
